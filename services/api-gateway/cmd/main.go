@@ -12,19 +12,28 @@ import (
 	"syscall"
 	"time"
 
+	grpc_clients "go-ride/services/api-gateway/internal/clients/grpc"
+
 	"github.com/go-playground/validator/v10"
 )
 
 var (
 	httpAddr    = env.GetString("HTTP_ADDR", ":8081")
 	environment = env.GetString("ENVIRONMENT", "development")
+	tripSvcAddr = env.GetString("TRIP_SERVICE_ADDR", "trip-service:9093")
 )
 
 func main() {
 	log.Println("Starting API Gateway")
 
 	v := validator.New()
-	tripController := controllers.NewTripController(v)
+	tripClient, conn, err := grpc_clients.NewTripServiceClient(tripSvcAddr)
+	if err != nil {
+		log.Fatalf("could not connect to trip service: %v", err)
+	}
+	defer conn.Close()
+
+	tripController := controllers.NewTripController(v, tripClient)
 
 	handler := httpHandler.NewHTTPHandler()
 	handler.RegisterRoutes(tripController)
