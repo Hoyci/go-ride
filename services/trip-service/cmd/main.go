@@ -43,7 +43,13 @@ func main() {
 	grpcServer := grpcserver.NewServer()
 	grpc.NewGRPCHandler(grpcServer, tripSvc, osrmSvc)
 
-	log.Printf("starting GRPC trip service on port %s", lis.Addr().String())
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Printf("failed to serve: %v", err)
+			cancel()
+		}
+		log.Printf("starting GRPC trip service on port %s", lis.Addr().String())
+	}()
 
 	// wait for the shutdown signal
 	<-ctx.Done()
