@@ -13,8 +13,8 @@ import (
 type PackageSlug string
 
 const (
-	UberX PackageSlug = "UBERX"
-	Black PackageSlug = "BLACK"
+	UBERX PackageSlug = "UBERX"
+	BLACK PackageSlug = "BLACK"
 )
 
 type RideFareModel struct {
@@ -37,9 +37,9 @@ func (r *RideFareModel) ToProto() *pb.RideFare {
 
 func toProtoPackageSlug(s PackageSlug) pb.PackageSlug {
 	switch s {
-	case UberX:
+	case UBERX:
 		return pb.PackageSlug_UBERX
-	case Black:
+	case BLACK:
 		return pb.PackageSlug_BLACK
 	default:
 		return pb.PackageSlug_PACKAGE_SLUG_UNSPECIFIED
