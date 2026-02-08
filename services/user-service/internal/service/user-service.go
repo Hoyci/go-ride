@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go-ride/services/user-service/internal/domain"
 	"go-ride/services/user-service/pkg"
+	"log"
 
 	"github.com/google/uuid"
 )
@@ -48,4 +49,20 @@ func (s *userService) CreateUser(ctx context.Context, user *domain.UserModel) (*
 
 func (s *userService) GetUserByEmail(ctx context.Context, email string) (*domain.UserModel, error) {
 	return s.repo.GetUserByEmail(ctx, email)
+}
+
+func (s *userService) Authenticate(ctx context.Context, email, password string) (*domain.UserModel, error) {
+	user, err := s.repo.GetUserByEmail(ctx, email)
+	if err != nil || user == nil {
+		log.Printf("error getting user by email: %v", err)
+		return nil, errors.New("invalid credentials")
+	}
+
+	err = pkg.CheckPassword(user.PasswordHashed, password)
+	if err != nil {
+		log.Printf("error checking password: %v", err)
+		return nil, errors.New("invalid credentials")
+	}
+
+	return user, nil
 }

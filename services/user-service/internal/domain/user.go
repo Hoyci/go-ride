@@ -18,6 +18,7 @@ type UserModel struct {
 type UserService interface {
 	CreateUser(ctx context.Context, user *UserModel) (*UserModel, error)
 	GetUserByEmail(ctx context.Context, email string) (*UserModel, error)
+	Authenticate(ctx context.Context, email, password string) (*UserModel, error)
 }
 
 type UserRepository interface {

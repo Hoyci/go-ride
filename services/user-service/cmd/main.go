@@ -6,6 +6,7 @@ import (
 	"go-ride/services/user-service/internal/repository"
 	"go-ride/services/user-service/internal/service"
 	"go-ride/shared/env"
+	"go-ride/shared/jwt"
 	"log"
 	"net"
 	"os"
@@ -18,11 +19,13 @@ import (
 var (
 	GrpcAddr    = env.GetString("GRPC_ADDR", ":9091")
 	environment = env.GetString("ENVIRONMENT", "development")
+	JWTSecret   = env.GetString("JWT_SECRET", "um-secret-muito-complexo")
 )
 
 func main() {
 	inmemRepo := repository.NewInmemRepository()
 	userSvc := service.NewUserSerivce(inmemRepo)
+	jwtSvc := jwt.NewJWTService(JWTSecret)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -40,7 +43,7 @@ func main() {
 	}
 
 	grpcServer := grpcserver.NewServer()
-	grpc.NewGRPCHandler(grpcServer, userSvc)
+	grpc.NewGRPCHandler(grpcServer, userSvc, jwtSvc)
 
 	go func() {
 		log.Printf("starting GRPC user service on port %s", lis.Addr().String())

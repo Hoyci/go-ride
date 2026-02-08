@@ -11,14 +11,25 @@ const (
 	PASSENGER UserType = "PASSENGER"
 )
 
-func MapUserTypeToProto(t UserType) pu.UserType {
+func MapUserTypeDomainToProto(t UserType) pu.UserType {
 	switch t {
 	case DRIVER:
 		return pu.UserType_DRIVER
 	case PASSENGER:
 		return pu.UserType_PASSENGER
 	default:
-		return pu.UserType_PASSENGER
+		return pu.UserType_USER_TYPE_UNSPECIFIED
+	}
+}
+
+func MapProtoToUserTypeDomain(t pu.UserType) UserType {
+	switch t {
+	case pu.UserType_DRIVER:
+		return DRIVER
+	case pu.UserType_PASSENGER:
+		return PASSENGER
+	default:
+		return PASSENGER
 	}
 }
 

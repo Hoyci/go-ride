@@ -60,7 +60,7 @@ func (s *UserController) HandleCreateUser(w http.ResponseWriter, r *http.Request
 			Name:     req.Name,
 			Email:    req.Email,
 			Password: req.Password,
-			Type:     types.MapUserTypeToProto(req.UserType),
+			Type:     types.MapUserTypeDomainToProto(req.UserType),
 		},
 	)
 
@@ -68,6 +68,33 @@ func (s *UserController) HandleCreateUser(w http.ResponseWriter, r *http.Request
 		log.Printf("failed to call create user: %v", err)
 		responses.WriteJSON(w, http.StatusInternalServerError, contracts.APIResponse{
 			Error: &contracts.APIError{Message: "failed to contact user service"},
+		})
+		return
+	}
+
+	responses.WriteJSON(w, http.StatusOK, contracts.APIResponse{
+		Data: grpcRes,
+	})
+}
+
+func (s *UserController) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	var req dto.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		responses.WriteJSON(w, http.StatusBadRequest, contracts.APIResponse{
+			Error: &contracts.APIError{Message: "invalid payload"},
+		})
+		return
+	}
+
+	grpcRes, err := s.userService.Login(r.Context(), &pu.LoginRequest{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+
+	if err != nil {
+		log.Printf("failed to call login user: %v", err)
+		responses.WriteJSON(w, http.StatusUnauthorized, contracts.APIResponse{
+			Error: &contracts.APIError{Message: "invalid credentials"},
 		})
 		return
 	}

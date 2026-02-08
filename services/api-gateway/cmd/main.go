@@ -5,6 +5,7 @@ import (
 	"go-ride/services/api-gateway/internal/controllers"
 	httpHandler "go-ride/services/api-gateway/internal/handlers/http"
 	"go-ride/shared/env"
+	"go-ride/shared/jwt"
 	"log"
 	"net/http"
 	"os"
@@ -22,6 +23,7 @@ var (
 	environment = env.GetString("ENVIRONMENT", "development")
 	tripSvcAddr = env.GetString("TRIP_SERVICE_ADDR", "trip-service:9093")
 	userSvcAddr = env.GetString("USER_SERVICE_ADDR", "user-service:9091")
+	JWTSecret   = env.GetString("JWT_SECRET", "um-secret-muito-complexo")
 )
 
 func main() {
@@ -41,11 +43,13 @@ func main() {
 	}
 	defer conn.Close()
 
+	jwtSvc := jwt.NewJWTService(JWTSecret)
+
 	tripController := controllers.NewTripController(v, tripClient)
 	userController := controllers.NewUserController(v, userClient)
 
 	handler := httpHandler.NewHTTPHandler()
-	handler.RegisterRoutes(userController, tripController)
+	handler.RegisterRoutes(userController, tripController, jwtSvc)
 	finalHandler := handler.GetHandler()
 
 	server := &http.Server{

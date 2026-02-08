@@ -1,9 +1,14 @@
 package http
 
 import (
+	"context"
+	"go-ride/shared/jwt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
+
+	jwtLib "github.com/golang-jwt/jwt/v5"
 )
 
 type Middleware func(http.Handler) http.Handler
@@ -58,4 +63,34 @@ func CORS(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func AuthMiddleware(jwtSvc *jwt.JWTService) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" {
+				http.Error(w, "token not found", http.StatusUnauthorized)
+				return
+			}
+
+			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+			token, err := jwtSvc.Validate(tokenStr)
+
+			if err != nil || !token.Valid {
+				http.Error(w, "token invalid or expired", http.StatusUnauthorized)
+				return
+			}
+
+			claims, ok := token.Claims.(jwtLib.MapClaims)
+			if ok && claims["type"] != "ACCESS" {
+				http.Error(w, "invalid token type", http.StatusUnauthorized)
+				return
+			}
+			userID := claims["sub"].(string)
+
+			ctx := context.WithValue(r.Context(), "user_id", userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }

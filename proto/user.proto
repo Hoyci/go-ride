@@ -6,11 +6,13 @@ option go_package = "shared/proto/user;user";
 
 service UserService {
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+    rpc Login(LoginRequest) returns (LoginResponse);
 }
 
 enum UserType {
-    DRIVER = 0;
-    PASSENGER = 1;
+    USER_TYPE_UNSPECIFIED = 0;
+    DRIVER = 1;
+    PASSENGER = 2;
 }
 
 message CreateUserRequest {
@@ -22,6 +24,20 @@ message CreateUserRequest {
 
 message CreateUserResponse {
     string id = 1;
+}
+
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string id = 1;
+    string name = 2;
+    string email = 3;
+    string type = 4;
+    string access_token = 5;
+    string refresh_token = 6;
 }
 
 message User {
