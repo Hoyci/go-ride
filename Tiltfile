@@ -8,8 +8,6 @@ k8s_yaml('./infra/development/k8s/app-config.yaml')
 
 ### API Gateway ###
 gateway_compile_cmd = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/api-gateway ./services/api-gateway/cmd'
-if os.name == 'nt':
-  gateway_compile_cmd = './infra/development/docker/api-gateway-build.bat'
 
 local_resource(
   'api-gateway-compile',
@@ -37,11 +35,11 @@ k8s_resource('api-gateway', port_forwards=8081, resource_deps=['api-gateway-comp
 ### End of API Gateway ###
 
 ### User Service ###
-gateway_compile_cmd = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/user-service ./services/user-service/cmd'
+user_compile_cmd = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/user-service ./services/user-service/cmd'
 
 local_resource(
   'user-service-compile',
-  gateway_compile_cmd,
+  user_compile_cmd,
   deps=['./services/user-service', './shared'], labels="compiles")
 
 
@@ -65,11 +63,11 @@ k8s_resource('user-service', resource_deps=['user-service-compile'], labels="ser
 ### End of user Service ###
 
 ### Trip Service ###
-gateway_compile_cmd = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/trip-service ./services/trip-service/cmd'
+trip_compile_cmd  = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/trip-service ./services/trip-service/cmd'
 
 local_resource(
   'trip-service-compile',
-  gateway_compile_cmd,
+  trip_compile_cmd,
   deps=['./services/trip-service', './shared'], labels="compiles")
 
 
@@ -91,3 +89,30 @@ docker_build_with_restart(
 k8s_yaml('./infra/development/k8s/trip-service-deployment.yaml')
 k8s_resource('trip-service', resource_deps=['trip-service-compile'], labels="services")
 ### End of Trip Service ###
+
+### Web Service ###
+web_compile_cmd = 'cd web && npm install --legacy-peer-deps && npm run build'
+
+local_resource(
+  'web-compile',
+  web_compile_cmd,
+  deps=['./web/src', './web/package.json', './web/vite.config.ts'], 
+  labels="compiles"
+)
+
+docker_build_with_restart(
+  'go-ride/web',
+  '.',
+  entrypoint=['nginx', '-g', 'daemon off;'],
+  dockerfile='./infra/development/docker/web.Dockerfile',
+  only=[
+    './web/dist',
+  ],
+  live_update=[
+    sync('./web/dist', '/usr/share/nginx/html'),
+  ],
+)
+
+k8s_yaml('./infra/development/k8s/web-deployment.yaml')
+k8s_resource('web-frontend', port_forwards='8080:80', resource_deps=['web-compile'], labels="services")
+### End of Web Service ###

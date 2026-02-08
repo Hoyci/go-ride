@@ -18,14 +18,55 @@ func NewTripService(repo domain.TripRepository) *tripService {
 }
 
 func (s *tripService) EstimatePackagesPriceWithRoute(route *tripTypes.OSRMApiResponse) []*domain.RideFareModel {
-	baseFares := getBaseFares()
-	estimatedFares := make([]*domain.RideFareModel, len(baseFares))
+	categories := []domain.PackageSlug{domain.UBERX, domain.BLACK}
+	estimatedFares := make([]*domain.RideFareModel, len(categories))
 
-	for i, fare := range baseFares {
-		estimatedFares[i] = s.estimateFareRoute(fare, route)
+	for i, slug := range categories {
+		estimatedFares[i] = s.calculateFareBySlug(slug, route)
 	}
 
 	return estimatedFares
+}
+
+func (s *tripService) calculateFareBySlug(slug domain.PackageSlug, route *tripTypes.OSRMApiResponse) *domain.RideFareModel {
+	cfg := s.getPricingConfig(slug)
+
+	// OSRM: metros -> km | segundos -> minutos
+	distanceInKm := route.Routes[0].Distance / 1000.0
+	durationInMinutes := route.Routes[0].Duration / 60.0
+
+	distanceTotal := distanceInKm * float64(cfg.PricePerUnitOfDistance)
+	timeTotal := durationInMinutes * float64(cfg.PricePerUnitOfTime)
+
+	totalPrice := float64(cfg.BaseFare) + distanceTotal + timeTotal
+
+	if totalPrice < float64(cfg.MinimumFare) {
+		totalPrice = float64(cfg.MinimumFare)
+	}
+
+	return &domain.RideFareModel{
+		PackageSlug:       slug,
+		TotalPriceInCents: totalPrice,
+	}
+}
+
+func (s *tripService) getPricingConfig(slug domain.PackageSlug) tripTypes.PricingConfig {
+	switch slug {
+	case domain.BLACK:
+		return tripTypes.PricingConfig{
+			BaseFare:               500,
+			PricePerUnitOfDistance: 250,
+			PricePerUnitOfTime:     60,
+			MinimumFare:            1500,
+		}
+	default: // UBERX
+		return tripTypes.PricingConfig{
+			BaseFare:               350,
+			PricePerUnitOfDistance: 160,
+			PricePerUnitOfTime:     30,
+			MinimumFare:            800,
+		}
+	}
 }
 
 func (s *tripService) GenerateTripFares(
@@ -38,8 +79,7 @@ func (s *tripService) GenerateTripFares(
 
 	for i, fare := range rideFares {
 		id := uuid.New()
-
-		fare = &domain.RideFareModel{
+		newFare := &domain.RideFareModel{
 			ID:                id,
 			PassengerID:       passengerID,
 			TotalPriceInCents: fare.TotalPriceInCents,
@@ -47,43 +87,10 @@ func (s *tripService) GenerateTripFares(
 			Route:             route,
 		}
 
-		if err := s.repo.SaveRideFare(ctx, fare); err != nil {
+		if err := s.repo.SaveRideFare(ctx, newFare); err != nil {
 			return nil, fmt.Errorf("failed to save trip fare: %v", err)
 		}
-
-		fares[i] = fare
+		fares[i] = newFare
 	}
-
 	return fares, nil
-}
-
-func (s *tripService) estimateFareRoute(fare *domain.RideFareModel, route *tripTypes.OSRMApiResponse) *domain.RideFareModel {
-	pricingCfg := tripTypes.DefaultPricingConfig()
-	carPackagePrice := fare.TotalPriceInCents
-
-	distanceInKm := route.Routes[0].Distance
-	durationInMinutes := route.Routes[0].Duration
-
-	distanceFare := distanceInKm * pricingCfg.PricePerUnitOfDistance
-	timeFare := durationInMinutes * pricingCfg.PricePerUnitOfTime
-
-	totalPrice := carPackagePrice + distanceFare + timeFare
-
-	return &domain.RideFareModel{
-		PackageSlug:       fare.PackageSlug,
-		TotalPriceInCents: totalPrice,
-	}
-}
-
-func getBaseFares() []*domain.RideFareModel {
-	return []*domain.RideFareModel{
-		{
-			PackageSlug:       domain.UBERX,
-			TotalPriceInCents: 200,
-		},
-		{
-			PackageSlug:       domain.BLACK,
-			TotalPriceInCents: 350,
-		},
-	}
 }

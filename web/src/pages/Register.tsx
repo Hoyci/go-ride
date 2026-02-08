@@ -1,24 +1,40 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser, UserType } from "@/contexts/UserContext";
+import { UserType, userTypes } from "@/contexts/UserContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, Car } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api";
+import { toast } from "sonner";
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userType, setUserType] = useState<UserType>("passenger");
-  const { login } = useUser();
+  const [userType, setUserType] = useState<UserType>("PASSENGER");
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !email) return;
-    login({ name, email, type: userType });
-    navigate("/dashboard");
-  };
+const registerMutation = useMutation({
+  mutationFn: (data: any) => apiRequest("/user", "POST", data),
+  onSuccess: () => {
+    toast.success("Conta criada com sucesso! Faça login.");
+    navigate("/");
+  },
+  onError: (error: Error) => {
+    toast.error(error.message);
+  }
+});
+
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  registerMutation.mutate({
+    name,
+    email,
+    password,
+    user_type: userType,
+  });
+};
 
   return (
     <div className="fixed inset-0 bg-card flex flex-col justify-center items-center z-50 p-6">
@@ -58,7 +74,7 @@ const Register = () => {
           />
 
           <div className="flex gap-4">
-            {(["passenger", "driver"] as const).map((type) => (
+            {userTypes.map((type) => (
               <label key={type} className="flex-1 cursor-pointer group">
                 <input
                   type="radio"
@@ -69,13 +85,13 @@ const Register = () => {
                   className="peer hidden"
                 />
                 <div className="p-4 border-2 border-border rounded-xl peer-checked:border-primary peer-checked:bg-secondary text-center transition group-hover:bg-secondary">
-                  {type === "passenger" ? (
+                  {type === "PASSENGER" ? (
                     <User className="mx-auto mb-2" size={24} />
                   ) : (
                     <Car className="mx-auto mb-2" size={24} />
                   )}
                   <div className="font-semibold">
-                    {type === "passenger" ? "Passageiro" : "Motorista"}
+                    {type === "PASSENGER" ? "Passageiro" : "Motorista"}
                   </div>
                 </div>
               </label>

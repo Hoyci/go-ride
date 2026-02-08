@@ -1,72 +1,112 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import L from "leaflet";
 import SearchPanel from "./SearchPanel";
-import LocationModal from "./LocationModal";
+import LocationModal, { LocationResult } from "./LocationModal";
 import RideSelectionPanel from "./RideSelectionPanel";
 import SearchingPanel from "./SearchingPanel";
 import TripPanel from "./TripPanel";
-import { START_COORDS } from "./MapView";
 import { toast } from "sonner";
+import { apiRequest } from "@/lib/api";
+import { useUser } from "@/contexts/UserContext";
 
 type PassengerStep = "search" | "selecting" | "searching" | "trip";
 
 interface PassengerUIProps {
   map: L.Map | null;
+  userCoords: [number, number] | null;
 }
 
-const PassengerUI = ({ map }: PassengerUIProps) => {
+const PassengerUI = ({ map, userCoords }: PassengerUIProps) => {
+  const { user } = useUser();
   const [step, setStep] = useState<PassengerStep>("search");
   const [showModal, setShowModal] = useState(false);
+  const [rideFares, setRideFares] = useState<any[]>([])
+
+  const [pickupMarker, setPickupMarker] = useState<L.Marker | null>(null);
   const [destMarker, setDestMarker] = useState<L.Marker | null>(null);
   const [routeLine, setRouteLine] = useState<L.Polyline | null>(null);
 
+  const pickupIcon = L.divIcon({
+    className: "",
+    html: `<div style="background-color: white; width: 12px; height: 12px; border: 3px solid black; border-radius: 50%;"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+
+  const destinationIcon = L.divIcon({
+    className: "",
+    html: `<div style="background-color: black; width: 12px; height: 12px; border: 2px solid white;"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+
   const clearMap = useCallback(() => {
-    if (destMarker && map) map.removeLayer(destMarker);
-    if (routeLine && map) map.removeLayer(routeLine);
+    if (map) {
+      if (pickupMarker) map.removeLayer(pickupMarker);
+      if (destMarker) map.removeLayer(destMarker);
+      if (routeLine) map.removeLayer(routeLine);
+    }
+    setPickupMarker(null);
     setDestMarker(null);
     setRouteLine(null);
-  }, [destMarker, routeLine, map]);
+  }, [pickupMarker, destMarker, routeLine, map]);
 
-  const handleSelectDestination = (name: string) => {
+  const handleConfirmSelection = async (pickup: LocationResult, destination: LocationResult) => {
     setShowModal(false);
     if (!map) return;
 
-    const center = map.getCenter();
-    const latOff = (Math.random() - 0.5) * 0.02;
-    const lngOff = (Math.random() - 0.5) * 0.02;
-    const destCoords: [number, number] = [center.lat + latOff, center.lng + lngOff];
+    try {
+      const response = await apiRequest("/trip-preview", "POST", {
+        passenger_id: user.id,
+        origin: {
+          latitude: pickup.lat,
+          longitude: pickup.lon
+        },
+        destination: {
+          latitude: destination.lat,
+          longitude: destination.lon
+        }
+      });
 
-    // Clear previous
-    clearMap();
+      const { route, rideFares } = response;
+      setRideFares(rideFares);
 
-    // Destination marker
-    const destIcon = L.divIcon({
-      className: "",
-      html: `<div style="background-color: hsl(0,0%,0%); width: 14px; height: 14px;"></div><div style="width: 2px; height: 10px; background: black; margin: 0 auto;"></div>`,
-      iconSize: [20, 20],
-      iconAnchor: [10, 20],
-    });
+      const routePoints: [number, number][] = route.geometry[0].coordinates.map((coord: any) => [
+        coord.longitude,
+        coord.latitude
+      ]);
 
-    const marker = L.marker(destCoords, { icon: destIcon }).addTo(map);
-    setDestMarker(marker);
+      clearMap();
 
-    // Route line
-    const line = L.polyline([START_COORDS, destCoords], {
-      color: "black",
-      weight: 4,
-      opacity: 0.8,
-      dashArray: "10, 10",
-    }).addTo(map);
-    setRouteLine(line);
+      const pMarker = L.marker([pickup.lat, pickup.lon], { icon: pickupIcon }).addTo(map);
+      const dMarker = L.marker([destination.lat, destination.lon], { icon: destinationIcon }).addTo(map);
 
-    map.fitBounds(L.latLngBounds([START_COORDS, destCoords]), { padding: [50, 50] });
+      const line = L.polyline(routePoints, {
+        color: "black",
+        weight: 5,
+        opacity: 0.8,
+        lineJoin: 'round'
+      }).addTo(map);
 
-    setStep("selecting");
+      setPickupMarker(pMarker);
+      setDestMarker(dMarker);
+      setRouteLine(line);
+
+      map.fitBounds(line.getBounds(), { padding: [50, 50] });
+
+      setStep("selecting");
+    } catch (error) {
+      toast.error("Erro ao calcular rota. Tente novamente.");
+      console.error(error);
+    }
   };
 
   const handleConfirmRide = () => {
     setStep("searching");
-    setTimeout(() => setStep("trip"), 3000);
+    setTimeout(() => {
+      toast.success("Motorista encontrado!");
+      setStep("trip");
+    }, 3000);
   };
 
   const handleCancelRide = () => {
@@ -76,7 +116,9 @@ const PassengerUI = ({ map }: PassengerUIProps) => {
   const handleFinishTrip = () => {
     toast.success("Viagem finalizada!");
     clearMap();
-    map?.setView(START_COORDS, 15);
+    if (map && userCoords) {
+      map.setView(userCoords, 16);
+    }
     setStep("search");
   };
 
@@ -85,17 +127,39 @@ const PassengerUI = ({ map }: PassengerUIProps) => {
       {showModal && (
         <LocationModal
           onClose={() => setShowModal(false)}
-          onSelectDestination={handleSelectDestination}
+          onConfirmSelection={handleConfirmSelection}
+          initialPickup={userCoords ? {
+            name: "Minha localização",
+            address: "Localização atual",
+            lat: userCoords[0],
+            lon: userCoords[1]
+          } : null}
         />
       )}
 
       <div className="absolute bottom-0 w-full z-20 flex flex-col items-center">
-        {step === "search" && <SearchPanel onOpenModal={() => setShowModal(true)} />}
-        {step === "selecting" && (
-          <RideSelectionPanel onConfirm={handleConfirmRide} onBack={() => setStep("search")} />
+        {step === "search" && (
+          <SearchPanel onOpenModal={() => setShowModal(true)} />
         )}
-        {step === "searching" && <SearchingPanel onCancel={handleCancelRide} />}
-        {step === "trip" && <TripPanel onFinish={handleFinishTrip} />}
+
+        {step === "selecting" && (
+          <RideSelectionPanel
+            fares={rideFares}
+            onConfirm={handleConfirmRide}
+            onBack={() => {
+              clearMap();
+              setStep("search");
+            }}
+          />
+        )}
+
+        {step === "searching" && (
+          <SearchingPanel onCancel={handleCancelRide} />
+        )}
+
+        {step === "trip" && (
+          <TripPanel onFinish={handleFinishTrip} />
+        )}
       </div>
     </>
   );

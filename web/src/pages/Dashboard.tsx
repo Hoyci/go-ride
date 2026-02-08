@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
-import { Menu, UserCircle, LogOut, Star, Clock, Settings, HelpCircle } from "lucide-react";
+import { Menu, UserCircle, LogOut, Star, Clock, Settings, HelpCircle, MapPinOff } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,9 +16,12 @@ import DriverUI from "@/components/uber/DriverUI";
 import L from "leaflet";
 
 const Dashboard = () => {
+  const [locationStatus, setLocationStatus] = useState<"loading" | "granted" | "denied">("loading");
+  const [coords, setCoords] = useState<[number, number] | null>(null)
+  const [map, setMap] = useState<L.Map | null>(null);
   const { user, logout } = useUser();
   const navigate = useNavigate();
-  const [map, setMap] = useState<L.Map | null>(null);
+
 
   const handleLogout = () => {
     logout();
@@ -26,22 +29,76 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (!user) navigate("/");
+    const token = localStorage.getItem("access_token");
+    if (!user && !token) {
+      navigate("/");
+      return;
+    }
+
+    console.log(user.type)
+
+    const geo = navigator.geolocation;
+    if (!geo) {
+      setLocationStatus("denied");
+      return;
+    }
+
+    const geoOptions = {
+      enableHighAccuracy: true, // Força o uso de GPS/Hardware
+      timeout: 10000,           // Tempo limite de 10 segundos
+      maximumAge: 0             // Não aceita localização em cache (antiga)
+    };
+
+    const watchId = geo.watchPosition(
+      (pos) => {
+        setCoords([pos.coords.latitude, pos.coords.longitude]);
+        setLocationStatus("granted");
+      },
+      (err) => {
+        console.error(err);
+        setLocationStatus("denied");
+      },
+      geoOptions
+    );
+
+    return () => geo.clearWatch(watchId);
   }, [user, navigate]);
+
 
   if (!user) return null;
 
-  return (
-    <div className="relative h-screen w-screen">
-      <MapView onMapReady={setMap} />
-
-      {/* Header */}
-      <div className="absolute top-4 left-4 z-20">
-        <button className="bg-card p-3 rounded-full shadow-lg hover:bg-secondary cursor-pointer">
-          <Menu size={22} />
+  if (locationStatus === "denied") {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-background p-6 text-center">
+        <div className="bg-destructive/10 p-4 rounded-full mb-4">
+          <MapPinOff size={48} className="text-destructive" />
+        </div>
+        <h1 className="text-2xl font-bold mb-2">Acesso à localização necessário</h1>
+        <p className="text-muted-foreground mb-6 max-w-sm">
+          Para usar o GoRide, precisamos saber onde você está. Por favor, habilite a localização nas configurações do seu navegador e recarregue a página.
+        </p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-bold"
+        >
+          Tentar novamente
         </button>
       </div>
-      <DropdownMenu>
+    );
+  }
+
+  if (locationStatus === "loading") {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative h-screen w-screen">
+      <MapView onMapReady={setMap} userCoords={coords} />
+       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="absolute top-4 right-4 z-20 bg-card px-4 py-2 rounded-full shadow-lg font-semibold flex items-center gap-2 cursor-pointer hover:bg-secondary transition">
             <UserCircle size={22} className="text-muted-foreground" />
@@ -53,7 +110,7 @@ const Dashboard = () => {
             <div className="font-bold">{user.name}</div>
             <div className="text-xs text-muted-foreground font-normal">{user.email}</div>
             <div className="text-xs text-muted-foreground font-normal capitalize mt-0.5">
-              {user.type === "passenger" ? "Passageiro" : "Motorista"}
+              {user.type === "PASSENGER" ? "Passageiro" : "Motorista"}
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
@@ -75,9 +132,8 @@ const Dashboard = () => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      {/* Conditional UI */}
-      {user.type === "passenger" ? <PassengerUI map={map} /> : <DriverUI />}
+      
+      {user.type === "PASSENGER" ? <PassengerUI map={map} userCoords={coords} /> : <DriverUI />}
     </div>
   );
 };
