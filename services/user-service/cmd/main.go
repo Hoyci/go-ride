@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"go-ride/services/trip-service/internal/infrastructure/grpc"
-	"go-ride/services/trip-service/internal/repository"
-	"go-ride/services/trip-service/internal/service"
+	"go-ride/services/user-service/internal/infrastructure/grpc"
+	"go-ride/services/user-service/internal/repository"
+	"go-ride/services/user-service/internal/service"
 	"go-ride/shared/env"
 	"log"
 	"net"
@@ -16,14 +16,13 @@ import (
 )
 
 var (
-	GrpcAddr    = env.GetString("GRPC_ADDR", ":9093")
+	GrpcAddr    = env.GetString("GRPC_ADDR", ":9091")
 	environment = env.GetString("ENVIRONMENT", "development")
 )
 
 func main() {
 	inmemRepo := repository.NewInmemRepository()
-	osrmSvc := service.NewOSRMService()
-	tripSvc := service.NewTripService(inmemRepo)
+	userSvc := service.NewUserSerivce(inmemRepo)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -41,10 +40,10 @@ func main() {
 	}
 
 	grpcServer := grpcserver.NewServer()
-	grpc.NewGRPCHandler(grpcServer, tripSvc, osrmSvc)
+	grpc.NewGRPCHandler(grpcServer, userSvc)
 
 	go func() {
-		log.Printf("starting GRPC trip service on port %s", lis.Addr().String())
+		log.Printf("starting GRPC user service on port %s", lis.Addr().String())
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Printf("failed to serve: %v", err)
 			cancel()

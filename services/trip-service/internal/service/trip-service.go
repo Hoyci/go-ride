@@ -78,11 +78,11 @@ func (s *tripService) estimateFareRoute(fare *domain.RideFareModel, route *tripT
 func getBaseFares() []*domain.RideFareModel {
 	return []*domain.RideFareModel{
 		{
-			PackageSlug:       domain.UberX,
+			PackageSlug:       domain.UBERX,
 			TotalPriceInCents: 200,
 		},
 		{
-			PackageSlug:       domain.Black,
+			PackageSlug:       domain.BLACK,
 			TotalPriceInCents: 350,
 		},
 	}
