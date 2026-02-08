@@ -3,9 +3,8 @@ package domain
 import (
 	"time"
 
-	pb "go-ride/shared/proto/trip"
-
 	tripTypes "go-ride/services/trip-service/pkg/types"
+	pb "go-ride/shared/proto/trip"
 
 	"github.com/google/uuid"
 )

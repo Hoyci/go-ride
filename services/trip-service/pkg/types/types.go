@@ -1,6 +1,8 @@
 package types
 
-import pb "go-ride/shared/proto/trip"
+import (
+	pb "go-ride/shared/proto/trip"
+)
 
 type OSRMApiResponse struct {
 	Routes []struct {
@@ -13,8 +15,10 @@ type OSRMApiResponse struct {
 }
 
 type PricingConfig struct {
-	PricePerUnitOfDistance float64
-	PricePerUnitOfTime     float64
+	BaseFare               int64
+	MinimumFare            int64
+	PricePerUnitOfDistance int64
+	PricePerUnitOfTime     int64
 }
 
 func (o *OSRMApiResponse) ToProto() *pb.Route {
@@ -37,12 +41,5 @@ func (o *OSRMApiResponse) ToProto() *pb.Route {
 		},
 		Distance: route.Distance,
 		Duration: route.Duration,
-	}
-}
-
-func DefaultPricingConfig() *PricingConfig {
-	return &PricingConfig{
-		PricePerUnitOfDistance: 1.5,
-		PricePerUnitOfTime:     0.25,
 	}
 }

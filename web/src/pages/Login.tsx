@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@/contexts/UserContext";
+import { UserType, useUser } from "@/contexts/UserContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
@@ -20,9 +20,10 @@ const loginMutation = useMutation({
     localStorage.setItem("refresh_token", data.refresh_token);
     
     login({
+      id: data.id,
       name: data.name,
       email: data.email,
-      type: data.type.toLowerCase() as any,
+      type: data.type as UserType,
     });
     navigate("/dashboard");
   },

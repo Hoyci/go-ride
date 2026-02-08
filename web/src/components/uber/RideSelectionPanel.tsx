@@ -1,71 +1,45 @@
 import { useState } from "react";
-import { User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface RideSelectionPanelProps {
+  fares: any[];
   onConfirm: () => void;
   onBack: () => void;
 }
 
-const rides = [
-  {
-    id: "uber-x",
-    name: "UberX",
-    seats: 4,
-    eta: "14:25",
-    price: "R$ 19,90",
-    img: "https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,w_956,h_537/v1568070387/assets/b5/0a5191-836e-42bf-8ea1-b8f219582d0d/original/UberX.png",
-  },
-  {
-    id: "uber-black",
-    name: "Black",
-    seats: 4,
-    eta: "14:28",
-    price: "R$ 32,50",
-    img: "https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,w_956,h_537/v1568134115/assets/6d/354919-18b0-45d0-a151-501ab4c4b114/original/UberBlack.png",
-  },
-];
 
-const RideSelectionPanel = ({ onConfirm }: RideSelectionPanelProps) => {
-  const [selected, setSelected] = useState("uber-x");
-
-  const selectedRide = rides.find((r) => r.id === selected);
+const RideSelectionPanel = ({ fares, onConfirm }: RideSelectionPanelProps) => {
+  const [selectedId, setSelectedId] = useState(fares[0]?.id);
 
   return (
     <div className="w-full bg-card rounded-t-3xl shadow-2xl p-6 pb-8">
-      <div className="w-12 h-1 bg-border rounded-full mx-auto mb-4" />
-      <h3 className="text-center font-bold mb-4 text-muted-foreground text-sm">ESCOLHA UMA VIAGEM</h3>
-
-      <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
-        {rides.map((ride) => (
+      <h3 className="text-center font-bold mb-4 text-muted-foreground text-sm uppercase">Opções de Viagem</h3>
+      <div className="space-y-2 mb-6">
+        {fares.map((fare) => (
           <div
-            key={ride.id}
-            onClick={() => setSelected(ride.id)}
-            className={cn(
-              "p-3 rounded-xl flex items-center justify-between cursor-pointer border-2 transition",
-              selected === ride.id
-                ? "border-primary bg-secondary"
-                : "border-transparent hover:bg-secondary"
-            )}
+            key={fare.id}
+            onClick={() => setSelectedId(fare.id)}
+            className={`p-4 rounded-xl flex justify-between items-center border-2 transition cursor-pointer ${selectedId === fare.id ? "border-black bg-secondary" : "border-transparent"
+              }`}
           >
             <div className="flex items-center gap-3">
-              <img src={ride.img} className="w-16 h-10 object-contain" alt={ride.name} />
+              <img
+                src={fare.packageSlug === 1 ? "/uberx.png" : "/black.png"}
+                alt={fare.packageSlug === 1 ? "UberX" : "Black"}
+                className="w-12"
+              />
               <div>
-                <div className="font-bold flex items-center gap-1">
-                  {ride.name} <User size={12} /> {ride.seats}
-                </div>
-                <div className="text-xs text-muted-foreground">{ride.eta} de chegada</div>
+                <p className="font-bold">{fare.packageSlug === 1 ? "UberX" : "Uber Black"}</p>
+                <p className="text-xs text-muted-foreground">Melhor preço</p>
               </div>
             </div>
-            <div className="font-bold text-lg">{ride.price}</div>
+            <p className="font-bold text-lg">
+              {(fare.totalPriceInCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
           </div>
         ))}
       </div>
-
-      <Button onClick={onConfirm} className="w-full py-4 text-lg font-bold rounded-lg h-auto">
-        Confirmar {selectedRide?.name}
-      </Button>
+      <Button onClick={onConfirm} className="w-full py-4 font-bold">Confirmar Viagem</Button>
     </div>
   );
 };

@@ -1,85 +1,153 @@
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, MapPin, Plane, Trees } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, MapPin, Loader2, Circle, Square } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { searchAddresses } from "@/lib/api";
+
+export interface LocationResult {
+  name: string;
+  address: string;
+  lat: number;
+  lon: number;
+}
 
 interface LocationModalProps {
   onClose: () => void;
-  onSelectDestination: (name: string) => void;
+  onConfirmSelection: (pickup: LocationResult, destination: LocationResult) => void;
+  initialPickup?: LocationResult | null;
 }
 
-const suggestions = [
-  { name: "Shopping Center", address: "Av. Principal, 500", icon: MapPin },
-  { name: "Aeroporto Internacional", address: "Terminal 2", icon: Plane },
-  { name: "Parque da Cidade", address: "Portão 3", icon: Trees },
-];
+const LocationModal = ({ onClose, onConfirmSelection, initialPickup }: LocationModalProps) => {
+  const [pickup, setPickup] = useState<LocationResult | null>(initialPickup || null);
+  const [destination, setDestination] = useState<LocationResult | null>(null);
 
-const LocationModal = ({ onClose, onSelectDestination }: LocationModalProps) => {
-  const [destination, setDestination] = useState("");
+  const [activeField, setActiveField] = useState<"pickup" | "destination">("destination");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<LocationResult[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleConfirm = () => {
-    if (destination) onSelectDestination(destination);
+  useEffect(() => {
+    const delayDebounce = setTimeout(async () => {
+      if (query.length > 2) {
+        setLoading(true);
+        try {
+          const data = await searchAddresses(query);
+          setResults(data);
+        } catch (error) {
+          console.error("Erro ao buscar endereços:", error);
+          setResults([]);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  }, [query]);
+
+  const handleSelectLocation = (res: LocationResult) => {
+    if (activeField === "pickup") {
+      setPickup(res);
+      setActiveField("destination");
+      setQuery("");
+      setResults([]);
+    } else {
+      setDestination(res);
+      const finalPickup = pickup || initialPickup;
+      
+      if (finalPickup) {
+        onConfirmSelection(finalPickup, res);
+      }
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-card z-50 flex flex-col">
-      <div className="p-4 shadow-sm bg-card">
-        <div className="relative">
-          <button onClick={onClose} className="absolute left-0 top-3 p-2 cursor-pointer">
+    <div className="fixed inset-0 bg-card z-50 flex flex-col animate-in slide-in-from-bottom duration-300">
+      {/* Header e Inputs */}
+      <div className="p-4 shadow-sm bg-card border-b">
+        <div className="flex items-center mb-4">
+          <button 
+            onClick={onClose} 
+            className="p-2 -ml-2 hover:bg-secondary rounded-full transition-colors"
+          >
             <ArrowLeft size={22} />
           </button>
-          <h2 className="text-center text-lg font-semibold py-4">Planejar viagem</h2>
+          <h2 className="flex-1 text-center text-lg font-semibold pr-8">Planejar viagem</h2>
         </div>
 
-        <div className="flex gap-3 mt-2">
+        <div className="flex gap-3 relative">
+          {/* Indicador Visual de Rota */}
           <div className="flex flex-col items-center pt-3 gap-1">
-            <div className="w-2 h-2 bg-muted-foreground rounded-full" />
-            <div className="w-0.5 h-8 bg-border" />
-            <div className="w-2 h-2 bg-foreground" />
+            <Circle size={8} className="fill-muted-foreground text-muted-foreground" />
+            <div className="w-0.5 h-10 bg-border" />
+            <Square size={8} className="fill-foreground text-foreground" />
           </div>
+
           <div className="flex-1 flex flex-col gap-3">
-            <div className="bg-secondary p-2 rounded-lg">
+            {/* Input Ponto de Partida */}
+            <div className={`bg-secondary p-2 rounded-lg flex items-center gap-2 border-2 transition-all ${activeField === "pickup" ? "border-primary" : "border-transparent"}`}>
               <Input
-                className="bg-transparent border-none shadow-none text-sm font-medium focus-visible:ring-0 p-0 h-auto"
-                defaultValue="Localização atual"
-                placeholder="Local de partida"
+                className="bg-transparent border-none shadow-none text-sm font-medium focus-visible:ring-0 p-0 h-8"
+                placeholder="Ponto de partida"
+                value={activeField === "pickup" ? query : (pickup?.name || "Localização atual")}
+                onFocus={() => {
+                  setActiveField("pickup");
+                  setQuery("");
+                  setResults([]);
+                }}
+                onChange={(e) => setQuery(e.target.value)}
               />
+              {loading && activeField === "pickup" && <Loader2 size={16} className="animate-spin text-muted-foreground mr-2" />}
             </div>
-            <div className="bg-secondary p-2 rounded-lg flex items-center gap-2">
+
+            {/* Input Destino */}
+            <div className={`bg-secondary p-2 rounded-lg flex items-center gap-2 border-2 transition-all ${activeField === "destination" ? "border-primary" : "border-transparent"}`}>
               <Input
-                className="bg-transparent border-none shadow-none text-sm font-medium focus-visible:ring-0 p-0 h-auto"
+                className="bg-transparent border-none shadow-none text-sm font-medium focus-visible:ring-0 p-0 h-8"
                 placeholder="Para onde?"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
+                value={activeField === "destination" ? query : (destination?.name || "")}
+                onFocus={() => {
+                  setActiveField("destination");
+                  setQuery("");
+                  setResults([]);
+                }}
+                onChange={(e) => setQuery(e.target.value)}
                 autoFocus
               />
-              <button
-                onClick={handleConfirm}
-                className="bg-primary text-primary-foreground rounded-full p-2 w-8 h-8 flex items-center justify-center shrink-0 cursor-pointer"
-              >
-                <ArrowRight size={14} />
-              </button>
+              {loading && activeField === "destination" && <Loader2 size={16} className="animate-spin text-muted-foreground mr-2" />}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="text-xs font-bold text-muted-foreground mb-2">SUGESTÕES</div>
-        {suggestions.map((s) => (
-          <div
-            key={s.name}
-            onClick={() => onSelectDestination(s.name)}
-            className="flex items-center gap-4 py-4 border-b border-border cursor-pointer hover:bg-secondary"
-          >
-            <div className="bg-secondary p-2 rounded-full">
-              <s.icon size={16} className="text-muted-foreground" />
+      {/* Lista de Resultados */}
+      <div className="flex-1 overflow-y-auto bg-background">
+        {results.length > 0 ? (
+          results.map((res, index) => (
+            <div
+              key={index}
+              onClick={() => handleSelectLocation(res)}
+              className="flex items-center gap-4 px-6 py-4 border-b border-border cursor-pointer hover:bg-secondary transition-colors"
+            >
+              <div className="bg-secondary p-2 rounded-full shrink-0">
+                <MapPin size={18} className="text-muted-foreground" />
+              </div>
+              <div className="overflow-hidden">
+                <div className="font-bold text-sm truncate">{res.name}</div>
+                <div className="text-xs text-muted-foreground truncate">{res.address}</div>
+              </div>
             </div>
-            <div>
-              <div className="font-bold">{s.name}</div>
-              <div className="text-sm text-muted-foreground">{s.address}</div>
-            </div>
+          ))
+        ) : query.length > 2 && !loading ? (
+          <div className="p-8 text-center text-muted-foreground text-sm italic">
+            Nenhum local encontrado para "{query}"
           </div>
-        ))}
+        ) : (
+          <div className="p-8 text-center text-muted-foreground text-xs uppercase tracking-widest opacity-50">
+            Digite pelo menos 3 caracteres
+          </div>
+        )}
       </div>
     </div>
   );
