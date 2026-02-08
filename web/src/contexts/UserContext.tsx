@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-export type UserType = "passenger" | "driver";
+export type UserType = "PASSENGER" | "DRIVER";
+export const userTypes = ["PASSENGER", "DRIVER"] as const;
 
 export interface User {
   name: string;

@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api";
+import { toast} from "sonner"
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -10,17 +13,28 @@ const Login = () => {
   const { login } = useUser();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-
+const loginMutation = useMutation({
+  mutationFn: (credentials: any) => apiRequest("/login", "POST", credentials),
+  onSuccess: (data) => {
+    localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("refresh_token", data.refresh_token);
+    
     login({
-      name: "Usuário Teste",
-      email,
-      type: email.includes("driver") ? "driver" : "passenger",
+      name: data.name,
+      email: data.email,
+      type: data.type.toLowerCase() as any,
     });
     navigate("/dashboard");
-  };
+  },
+  onError: (error: Error) => {
+    toast.error("Credenciais inválidas ou erro de conexão.");
+  }
+});
+
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  loginMutation.mutate({ email, password });
+};
 
   return (
     <div className="fixed inset-0 bg-primary flex flex-col justify-center items-center z-50 p-6">
