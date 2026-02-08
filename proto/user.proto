@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "shared/proto/user;user";
+
+service UserService {
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+}
+
+enum UserType {
+    USER_TYPE_UNSPECIFIED = 0;
+    DRIVER = 1;
+    PASSENGER = 2;
+}
+
+message CreateUserRequest {
+    string name = 1;
+    string email = 2;
+    string password = 3;
+    UserType type = 4;
+}
+
+message CreateUserResponse {
+    string id = 1;
+}
