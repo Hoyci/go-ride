@@ -17,8 +17,16 @@ func NewHTTPHandler() *Handler {
 	}
 }
 
-func (h *Handler) RegisterRoutes(tripController *controllers.TripController) {
+func (h *Handler) RegisterRoutes(
+	userController *controllers.UserController,
+	tripController *controllers.TripController,
+) {
+	h.registerUserRoutes(userController)
 	h.registerTripRoutes(tripController)
+}
+
+func (h *Handler) registerUserRoutes(userController *controllers.UserController) {
+	h.Router.HandleFunc("POST /api/v1/user", userController.HandleCreateUser)
 }
 
 func (h *Handler) registerTripRoutes(tripController *controllers.TripController) {

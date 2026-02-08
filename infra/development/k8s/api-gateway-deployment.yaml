@@ -40,6 +40,11 @@ spec:
                 configMapKeyRef:
                   key: TRIP_SERVICE_ADDR
                   name: app-config
+            - name: USER_SERVICE_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  key: USER_SERVICE_ADDR
+                  name: app-config
 ---
 apiVersion: v1
 kind: Service

@@ -2,15 +2,9 @@ package domain
 
 import (
 	"context"
+	"go-ride/shared/types"
 
 	"github.com/google/uuid"
-)
-
-type UserType string
-
-const (
-	DRIVER    UserType = "DRIVER"
-	PASSENGER UserType = "PASSENGER"
 )
 
 type UserModel struct {
@@ -18,7 +12,7 @@ type UserModel struct {
 	Name           string
 	Email          string
 	PasswordHashed string
-	Type           UserType
+	Type           types.UserType
 }
 
 type UserService interface {

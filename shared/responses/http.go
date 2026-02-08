@@ -17,7 +17,7 @@ func ParseValidationErrors(err error) map[string]string {
 	errors := make(map[string]string)
 	if validationErrors, ok := err.(validator.ValidationErrors); ok {
 		for _, fieldErr := range validationErrors {
-			errors[fieldErr.Field()] = fieldErr.Tag()
+			errors[fieldErr.Field()] = fieldErr.Error()
 		}
 	}
 	return errors

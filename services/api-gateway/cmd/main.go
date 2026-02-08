@@ -21,22 +21,31 @@ var (
 	httpAddr    = env.GetString("HTTP_ADDR", ":8081")
 	environment = env.GetString("ENVIRONMENT", "development")
 	tripSvcAddr = env.GetString("TRIP_SERVICE_ADDR", "trip-service:9093")
+	userSvcAddr = env.GetString("USER_SERVICE_ADDR", "user-service:9091")
 )
 
 func main() {
 	log.Println("Starting API Gateway")
 
 	v := validator.New()
+
 	tripClient, conn, err := grpc_clients.NewTripServiceClient(tripSvcAddr)
 	if err != nil {
 		log.Fatalf("could not connect to trip service: %v", err)
 	}
 	defer conn.Close()
 
+	userClient, conn, err := grpc_clients.NewUserServiceClient(userSvcAddr)
+	if err != nil {
+		log.Fatalf("could not connect to user service: %v", err)
+	}
+	defer conn.Close()
+
 	tripController := controllers.NewTripController(v, tripClient)
+	userController := controllers.NewUserController(v, userClient)
 
 	handler := httpHandler.NewHTTPHandler()
-	handler.RegisterRoutes(tripController)
+	handler.RegisterRoutes(userController, tripController)
 	finalHandler := handler.GetHandler()
 
 	server := &http.Server{

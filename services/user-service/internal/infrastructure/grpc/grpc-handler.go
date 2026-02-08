@@ -6,6 +6,7 @@ import (
 	"go-ride/services/user-service/internal/domain"
 	"go-ride/services/user-service/internal/service"
 	pu "go-ride/shared/proto/user"
+	"go-ride/shared/types"
 	"log"
 
 	"github.com/google/uuid"
@@ -33,7 +34,7 @@ func (h *gRPCHandler) CreateUser(ctx context.Context, req *pu.CreateUserRequest)
 		Name:           req.Name,
 		Email:          req.Email,
 		PasswordHashed: req.Password,
-		Type:           domain.UserType(req.Type.String()),
+		Type:           types.UserType(req.Type.String()),
 	}
 
 	user, err := h.userService.CreateUser(ctx, userModel)
