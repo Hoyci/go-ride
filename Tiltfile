@@ -116,3 +116,8 @@ docker_build_with_restart(
 k8s_yaml('./infra/development/k8s/web-deployment.yaml')
 k8s_resource('web-frontend', port_forwards='8080:80', resource_deps=['web-compile'], labels="services")
 ### End of Web Service ###
+
+### Redis Service ###
+k8s_yaml('./infra/development/k8s/redis-deployment.yaml')
+k8s_resource('redis', labels="infra")
+### End of Redis Service ###

@@ -45,6 +45,11 @@ spec:
                 configMapKeyRef:
                   key: USER_SERVICE_ADDR
                   name: app-config
+            - name: REDIS_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  key: REDIS_ADDR
+                  name: app-config
 ---
 apiVersion: v1
 kind: Service

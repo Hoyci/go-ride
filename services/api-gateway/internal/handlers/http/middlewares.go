@@ -9,6 +9,7 @@ import (
 	"time"
 
 	jwtLib "github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 )
 
 type Middleware func(http.Handler) http.Handler
@@ -65,7 +66,7 @@ func CORS(next http.Handler) http.Handler {
 	})
 }
 
-func AuthMiddleware(jwtSvc *jwt.JWTService) Middleware {
+func AuthMiddleware(jwtSvc *jwt.JWTService, rdb *redis.Client) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
@@ -83,11 +84,19 @@ func AuthMiddleware(jwtSvc *jwt.JWTService) Middleware {
 			}
 
 			claims, ok := token.Claims.(jwtLib.MapClaims)
-			if ok && claims["type"] != "ACCESS" {
-				http.Error(w, "invalid token type", http.StatusUnauthorized)
+			if !ok {
+				http.Error(w, "invalid claims", http.StatusUnauthorized)
 				return
 			}
+
 			userID := claims["sub"].(string)
+			jti := claims["jti"].(string)
+
+			activeJti, err := rdb.Get(r.Context(), "session:"+userID).Result()
+			if err == redis.Nil || activeJti != jti {
+				http.Error(w, "session expired", http.StatusUnauthorized)
+				return
+			}
 
 			ctx := context.WithValue(r.Context(), "user_id", userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
