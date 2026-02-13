@@ -8,6 +8,7 @@ import TripPanel from "./TripPanel";
 import { toast } from "sonner";
 import { apiRequest } from "@/lib/api";
 import { useUser } from "@/contexts/UserContext";
+import { useMutation } from "@tanstack/react-query";
 
 type PassengerStep = "search" | "selecting" | "searching" | "trip";
 
@@ -21,6 +22,7 @@ const PassengerUI = ({ map, userCoords }: PassengerUIProps) => {
   const [step, setStep] = useState<PassengerStep>("search");
   const [showModal, setShowModal] = useState(false);
   const [rideFares, setRideFares] = useState<any[]>([])
+  const [selectedRideFareID, setSelectedRideFareID] = useState(null);
 
   const [pickupMarker, setPickupMarker] = useState<L.Marker | null>(null);
   const [destMarker, setDestMarker] = useState<L.Marker | null>(null);
@@ -101,13 +103,25 @@ const PassengerUI = ({ map, userCoords }: PassengerUIProps) => {
     }
   };
 
-  const handleConfirmRide = () => {
-    setStep("searching");
-    setTimeout(() => {
-      toast.success("Motorista encontrado!");
-      setStep("trip");
-    }, 3000);
-  };
+    const createTripMutation = useMutation({
+      mutationFn: (data: { ride_fare_id: string, user_id: string}) => apiRequest("/trip", "POST", data),
+      onSuccess: () => {
+        setStep("searching");
+      },
+      onError: (error: Error) => {
+        toast.error("Erro ao criar corrida, tente novamente.");
+      }
+    });
+
+    const handleConfirmRide = (rideFareId: string) => {
+      createTripMutation.mutate({ride_fare_id: rideFareId, user_id: user.id})
+    }
+
+    // Quando receber o sinal de motorista encontrado via websocket, disparar o toast abaixo
+    //     setTimeout(() => {
+    //   toast.success("Motorista encontrado!");
+    //   setStep("trip");
+    // }, 3000);
 
   const handleCancelRide = () => {
     setStep("selecting");
@@ -145,6 +159,8 @@ const PassengerUI = ({ map, userCoords }: PassengerUIProps) => {
         {step === "selecting" && (
           <RideSelectionPanel
             fares={rideFares}
+            selectedFareID={selectedRideFareID}
+            setSelectedFareID={setSelectedRideFareID}
             onConfirm={handleConfirmRide}
             onBack={() => {
               clearMap();

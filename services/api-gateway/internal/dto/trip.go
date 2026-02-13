@@ -7,3 +7,8 @@ type PreviewTripRequest struct {
 	Origin      *types.Coordinate `json:"origin" validate:"required"`
 	Destination *types.Coordinate `json:"destination" validate:"required"`
 }
+
+type CreateTripRequest struct {
+	RideFareID string `json:"ride_fare_id"`
+	UserID     string `json:"user_id"`
+}

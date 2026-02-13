@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go-ride/services/trip-service/internal/domain"
 	tripTypes "go-ride/services/trip-service/pkg/types"
+	"go-ride/shared/proto/trip"
 
 	"github.com/google/uuid"
 )
@@ -93,4 +94,38 @@ func (s *tripService) GenerateTripFares(
 		fares[i] = newFare
 	}
 	return fares, nil
+}
+
+func (s *tripService) GetAndValidateFare(ctx context.Context, fareID, userID string) (*domain.RideFareModel, error) {
+	fare, err := s.repo.GetRideFareByID(ctx, fareID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get trip fare: %v", err)
+	}
+
+	if fare == nil {
+		return nil, fmt.Errorf("fare does not exists")
+	}
+
+	if fare.PassengerID != userID {
+		return nil, fmt.Errorf("fare %s does not belong to the user %s", fare.ID, userID)
+	}
+
+	return fare, nil
+}
+
+func (s *tripService) CreateTrip(ctx context.Context, fare *domain.RideFareModel) (*domain.TripModel, error) {
+	passengerID, err := uuid.Parse(fare.PassengerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse userID as uuid")
+	}
+
+	trip := &domain.TripModel{
+		ID:          uuid.New(),
+		PassengerID: passengerID,
+		Status:      "pending",
+		RideFare:    fare,
+		Driver:      &trip.TripDriver{},
+	}
+
+	return s.repo.CreateTrip(ctx, trip)
 }

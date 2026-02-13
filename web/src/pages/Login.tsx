@@ -14,7 +14,7 @@ const Login = () => {
   const navigate = useNavigate();
 
 const loginMutation = useMutation({
-  mutationFn: (credentials: any) => apiRequest("/login", "POST", credentials),
+  mutationFn: (credentials: { email: string, password: string }) => apiRequest("/login", "POST", credentials),
   onSuccess: (data) => {
     localStorage.setItem("access_token", data.access_token);
     localStorage.setItem("refresh_token", data.refresh_token);

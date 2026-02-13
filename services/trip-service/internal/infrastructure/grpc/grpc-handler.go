@@ -62,3 +62,26 @@ func (h *gRPCHandler) PreviewTrip(ctx context.Context, req *pb.PreviewTripReques
 		RideFares: domain.ToRideFaresProto(fares),
 	}, nil
 }
+
+func (h *gRPCHandler) CreateTrip(ctx context.Context, req *pb.CreateTripRequest) (*pb.CreateTripResponse, error) {
+	userID := req.GetUserID()
+	fareID := req.GetRideFareID()
+
+	rideFare, err := h.tripService.GetAndValidateFare(ctx, fareID, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to validate the fare: %v", err)
+	}
+
+	trip, err := h.tripService.CreateTrip(ctx, rideFare)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create trip: %v", err)
+	}
+
+	// if err := h.publisher.PublishTripCreated(ctx, trip); err != nil {
+	// 	return nil, status.Errorf(codes.Internal, "failed to publish the trip created event message: %v", err)
+	// }
+
+	return &pb.CreateTripResponse{
+		TripID: trip.ID.String(),
+	}, nil
+}
