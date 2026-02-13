@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
-import { Menu, UserCircle, LogOut, Star, Clock, Settings, HelpCircle, MapPinOff } from "lucide-react";
+import { UserCircle, LogOut, Star, Clock, Settings, HelpCircle, MapPinOff } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +14,9 @@ import MapView from "@/components/uber/MapView";
 import PassengerUI from "@/components/uber/PassengerUI";
 import DriverUI from "@/components/uber/DriverUI";
 import L from "leaflet";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api";
+import { toast } from "sonner"
 
 const Dashboard = () => {
   const [locationStatus, setLocationStatus] = useState<"loading" | "granted" | "denied">("loading");
@@ -22,10 +25,20 @@ const Dashboard = () => {
   const { user, logout } = useUser();
   const navigate = useNavigate();
 
+  const logoutMutation = useMutation({
+    mutationFn: () => apiRequest("/logout", "POST",),
+    onSuccess: () => {
+      logout();
+      navigate("/");
+    },
+    onError: (error: Error) => {
+      toast.error("Credenciais inválidas ou erro de conexão.");
+    }
+  });
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const handleLogout = (e: React.FormEvent) => {
+    e.preventDefault();
+    logoutMutation.mutate()
   };
 
   useEffect(() => {
@@ -34,8 +47,6 @@ const Dashboard = () => {
       navigate("/");
       return;
     }
-
-    console.log(user.type)
 
     const geo = navigator.geolocation;
     if (!geo) {
@@ -77,7 +88,7 @@ const Dashboard = () => {
         <p className="text-muted-foreground mb-6 max-w-sm">
           Para usar o GoRide, precisamos saber onde você está. Por favor, habilite a localização nas configurações do seu navegador e recarregue a página.
         </p>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-bold"
         >
@@ -98,7 +109,7 @@ const Dashboard = () => {
   return (
     <div className="relative h-screen w-screen">
       <MapView onMapReady={setMap} userCoords={coords} />
-       <DropdownMenu>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="absolute top-4 right-4 z-20 bg-card px-4 py-2 rounded-full shadow-lg font-semibold flex items-center gap-2 cursor-pointer hover:bg-secondary transition">
             <UserCircle size={22} className="text-muted-foreground" />
@@ -132,7 +143,7 @@ const Dashboard = () => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      
+
       {user.type === "PASSENGER" ? <PassengerUI map={map} userCoords={coords} /> : <DriverUI />}
     </div>
   );
