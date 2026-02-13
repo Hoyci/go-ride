@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	tripTypes "go-ride/services/trip-service/pkg/types"
+	pb "go-ride/shared/proto/trip"
 	"go-ride/shared/types"
 
 	"github.com/google/uuid"
@@ -23,6 +24,7 @@ type TripModel struct {
 	PassengerID uuid.UUID
 	Status      TripStatus
 	RideFare    *RideFareModel
+	Driver      *pb.TripDriver // Realmente eu devo usar o proto aqui para tipar o driver?
 }
 
 // func (t *TripModel) ToProto() *pb.Trip {
@@ -37,18 +39,18 @@ type TripModel struct {
 // }
 
 type TripRepository interface {
-	// CreateTrip(ctx context.Context, trip *TripModel) (*TripModel, error)
+	CreateTrip(ctx context.Context, trip *TripModel) (*TripModel, error)
 	SaveRideFare(ctx context.Context, fare *RideFareModel) error
-	// GetRideFareByID(ctx context.Context, fareID string) (*RideFareModel, error)
+	GetRideFareByID(ctx context.Context, fareID string) (*RideFareModel, error)
 	// GetTripByID(ctx context.Context, tripID string) (*TripModel, error)
 	// UpdateTrip(ctx context.Context, tripID, status string, driver *pbd.Driver) error
 }
 
 type TripService interface {
-	// CreateTrip(ctx context.Context, fare *RideFareModel) (*TripModel, error)
+	CreateTrip(ctx context.Context, fare *RideFareModel) (*TripModel, error)
 	EstimatePackagesPriceWithRoute(route *tripTypes.OSRMApiResponse) []*RideFareModel
 	GenerateTripFares(ctx context.Context, fares []*RideFareModel, userID string, route *tripTypes.OSRMApiResponse) ([]*RideFareModel, error)
-	// GetAndValidateFare(ctx context.Context, fareID, userID string) (*RideFareModel, error)
+	GetAndValidateFare(ctx context.Context, fareID, userID string) (*RideFareModel, error)
 	// GetTripByID(ctx context.Context, tripID string) (*TripModel, error)
 	// UpdateTrip(ctx context.Context, tripID, status string, driver *pbd.Driver) error
 }

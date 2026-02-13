@@ -190,6 +190,110 @@ func (x *PreviewTripResponse) GetRideFares() []*RideFare {
 	return nil
 }
 
+type CreateTripRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RideFareID    string                 `protobuf:"bytes,1,opt,name=rideFareID,proto3" json:"rideFareID,omitempty"`
+	UserID        string                 `protobuf:"bytes,2,opt,name=userID,proto3" json:"userID,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateTripRequest) Reset() {
+	*x = CreateTripRequest{}
+	mi := &file_proto_trip_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateTripRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateTripRequest) ProtoMessage() {}
+
+func (x *CreateTripRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_trip_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateTripRequest.ProtoReflect.Descriptor instead.
+func (*CreateTripRequest) Descriptor() ([]byte, []int) {
+	return file_proto_trip_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CreateTripRequest) GetRideFareID() string {
+	if x != nil {
+		return x.RideFareID
+	}
+	return ""
+}
+
+func (x *CreateTripRequest) GetUserID() string {
+	if x != nil {
+		return x.UserID
+	}
+	return ""
+}
+
+type CreateTripResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TripID        string                 `protobuf:"bytes,1,opt,name=tripID,proto3" json:"tripID,omitempty"`
+	Trip          *Trip                  `protobuf:"bytes,2,opt,name=trip,proto3" json:"trip,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateTripResponse) Reset() {
+	*x = CreateTripResponse{}
+	mi := &file_proto_trip_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateTripResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateTripResponse) ProtoMessage() {}
+
+func (x *CreateTripResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_trip_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateTripResponse.ProtoReflect.Descriptor instead.
+func (*CreateTripResponse) Descriptor() ([]byte, []int) {
+	return file_proto_trip_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CreateTripResponse) GetTripID() string {
+	if x != nil {
+		return x.TripID
+	}
+	return ""
+}
+
+func (x *CreateTripResponse) GetTrip() *Trip {
+	if x != nil {
+		return x.Trip
+	}
+	return nil
+}
+
 type Coordinate struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Latitude      float64                `protobuf:"fixed64,1,opt,name=latitude,proto3" json:"latitude,omitempty"`
@@ -200,7 +304,7 @@ type Coordinate struct {
 
 func (x *Coordinate) Reset() {
 	*x = Coordinate{}
-	mi := &file_proto_trip_proto_msgTypes[2]
+	mi := &file_proto_trip_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -212,7 +316,7 @@ func (x *Coordinate) String() string {
 func (*Coordinate) ProtoMessage() {}
 
 func (x *Coordinate) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_trip_proto_msgTypes[2]
+	mi := &file_proto_trip_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -225,7 +329,7 @@ func (x *Coordinate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Coordinate.ProtoReflect.Descriptor instead.
 func (*Coordinate) Descriptor() ([]byte, []int) {
-	return file_proto_trip_proto_rawDescGZIP(), []int{2}
+	return file_proto_trip_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Coordinate) GetLatitude() float64 {
@@ -251,7 +355,7 @@ type Geometry struct {
 
 func (x *Geometry) Reset() {
 	*x = Geometry{}
-	mi := &file_proto_trip_proto_msgTypes[3]
+	mi := &file_proto_trip_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -263,7 +367,7 @@ func (x *Geometry) String() string {
 func (*Geometry) ProtoMessage() {}
 
 func (x *Geometry) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_trip_proto_msgTypes[3]
+	mi := &file_proto_trip_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -276,7 +380,7 @@ func (x *Geometry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Geometry.ProtoReflect.Descriptor instead.
 func (*Geometry) Descriptor() ([]byte, []int) {
-	return file_proto_trip_proto_rawDescGZIP(), []int{3}
+	return file_proto_trip_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Geometry) GetCoordinates() []*Coordinate {
@@ -297,7 +401,7 @@ type Route struct {
 
 func (x *Route) Reset() {
 	*x = Route{}
-	mi := &file_proto_trip_proto_msgTypes[4]
+	mi := &file_proto_trip_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -309,7 +413,7 @@ func (x *Route) String() string {
 func (*Route) ProtoMessage() {}
 
 func (x *Route) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_trip_proto_msgTypes[4]
+	mi := &file_proto_trip_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -322,7 +426,7 @@ func (x *Route) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Route.ProtoReflect.Descriptor instead.
 func (*Route) Descriptor() ([]byte, []int) {
-	return file_proto_trip_proto_rawDescGZIP(), []int{4}
+	return file_proto_trip_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Route) GetGeometry() []*Geometry {
@@ -358,7 +462,7 @@ type RideFare struct {
 
 func (x *RideFare) Reset() {
 	*x = RideFare{}
-	mi := &file_proto_trip_proto_msgTypes[5]
+	mi := &file_proto_trip_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -370,7 +474,7 @@ func (x *RideFare) String() string {
 func (*RideFare) ProtoMessage() {}
 
 func (x *RideFare) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_trip_proto_msgTypes[5]
+	mi := &file_proto_trip_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -383,7 +487,7 @@ func (x *RideFare) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RideFare.ProtoReflect.Descriptor instead.
 func (*RideFare) Descriptor() ([]byte, []int) {
-	return file_proto_trip_proto_rawDescGZIP(), []int{5}
+	return file_proto_trip_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *RideFare) GetId() string {
@@ -414,6 +518,158 @@ func (x *RideFare) GetTotalPriceInCents() float64 {
 	return 0
 }
 
+type Trip struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SelectedFare  *RideFare              `protobuf:"bytes,2,opt,name=selectedFare,proto3" json:"selectedFare,omitempty"`
+	Route         *Route                 `protobuf:"bytes,3,opt,name=route,proto3" json:"route,omitempty"`
+	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	UserId        string                 `protobuf:"bytes,5,opt,name=userId,proto3" json:"userId,omitempty"`
+	Driver        *TripDriver            `protobuf:"bytes,6,opt,name=driver,proto3" json:"driver,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Trip) Reset() {
+	*x = Trip{}
+	mi := &file_proto_trip_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Trip) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Trip) ProtoMessage() {}
+
+func (x *Trip) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_trip_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Trip.ProtoReflect.Descriptor instead.
+func (*Trip) Descriptor() ([]byte, []int) {
+	return file_proto_trip_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Trip) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Trip) GetSelectedFare() *RideFare {
+	if x != nil {
+		return x.SelectedFare
+	}
+	return nil
+}
+
+func (x *Trip) GetRoute() *Route {
+	if x != nil {
+		return x.Route
+	}
+	return nil
+}
+
+func (x *Trip) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *Trip) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *Trip) GetDriver() *TripDriver {
+	if x != nil {
+		return x.Driver
+	}
+	return nil
+}
+
+type TripDriver struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name           string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	ProfilePicture string                 `protobuf:"bytes,3,opt,name=profilePicture,proto3" json:"profilePicture,omitempty"`
+	CarPlate       string                 `protobuf:"bytes,4,opt,name=carPlate,proto3" json:"carPlate,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *TripDriver) Reset() {
+	*x = TripDriver{}
+	mi := &file_proto_trip_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TripDriver) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TripDriver) ProtoMessage() {}
+
+func (x *TripDriver) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_trip_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TripDriver.ProtoReflect.Descriptor instead.
+func (*TripDriver) Descriptor() ([]byte, []int) {
+	return file_proto_trip_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *TripDriver) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *TripDriver) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *TripDriver) GetProfilePicture() string {
+	if x != nil {
+		return x.ProfilePicture
+	}
+	return ""
+}
+
+func (x *TripDriver) GetCarPlate() string {
+	if x != nil {
+		return x.CarPlate
+	}
+	return ""
+}
+
 var File_proto_trip_proto protoreflect.FileDescriptor
 
 const file_proto_trip_proto_rawDesc = "" +
@@ -426,7 +682,16 @@ const file_proto_trip_proto_rawDesc = "" +
 	"\x13PreviewTripResponse\x12\x16\n" +
 	"\x06tripId\x18\x01 \x01(\tR\x06tripId\x12!\n" +
 	"\x05route\x18\x02 \x01(\v2\v.trip.RouteR\x05route\x12,\n" +
-	"\trideFares\x18\x03 \x03(\v2\x0e.trip.RideFareR\trideFares\"F\n" +
+	"\trideFares\x18\x03 \x03(\v2\x0e.trip.RideFareR\trideFares\"K\n" +
+	"\x11CreateTripRequest\x12\x1e\n" +
+	"\n" +
+	"rideFareID\x18\x01 \x01(\tR\n" +
+	"rideFareID\x12\x16\n" +
+	"\x06userID\x18\x02 \x01(\tR\x06userID\"L\n" +
+	"\x12CreateTripResponse\x12\x16\n" +
+	"\x06tripID\x18\x01 \x01(\tR\x06tripID\x12\x1e\n" +
+	"\x04trip\x18\x02 \x01(\v2\n" +
+	".trip.TripR\x04trip\"F\n" +
 	"\n" +
 	"Coordinate\x12\x1a\n" +
 	"\blatitude\x18\x01 \x01(\x01R\blatitude\x12\x1c\n" +
@@ -441,13 +706,28 @@ const file_proto_trip_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
 	"\vpassengerID\x18\x02 \x01(\tR\vpassengerID\x123\n" +
 	"\vpackageSlug\x18\x03 \x01(\x0e2\x11.trip.PackageSlugR\vpackageSlug\x12,\n" +
-	"\x11totalPriceInCents\x18\x04 \x01(\x01R\x11totalPriceInCents*A\n" +
+	"\x11totalPriceInCents\x18\x04 \x01(\x01R\x11totalPriceInCents\"\xc7\x01\n" +
+	"\x04Trip\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x122\n" +
+	"\fselectedFare\x18\x02 \x01(\v2\x0e.trip.RideFareR\fselectedFare\x12!\n" +
+	"\x05route\x18\x03 \x01(\v2\v.trip.RouteR\x05route\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x16\n" +
+	"\x06userId\x18\x05 \x01(\tR\x06userId\x12(\n" +
+	"\x06driver\x18\x06 \x01(\v2\x10.trip.TripDriverR\x06driver\"t\n" +
+	"\n" +
+	"TripDriver\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12&\n" +
+	"\x0eprofilePicture\x18\x03 \x01(\tR\x0eprofilePicture\x12\x1a\n" +
+	"\bcarPlate\x18\x04 \x01(\tR\bcarPlate*A\n" +
 	"\vPackageSlug\x12\x1c\n" +
 	"\x18PACKAGE_SLUG_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05UBERX\x10\x01\x12\t\n" +
-	"\x05BLACK\x10\x022Q\n" +
+	"\x05BLACK\x10\x022\x92\x01\n" +
 	"\vTripService\x12B\n" +
-	"\vPreviewTrip\x12\x18.trip.PreviewTripRequest\x1a\x19.trip.PreviewTripResponseB\x18Z\x16shared/proto/trip;tripb\x06proto3"
+	"\vPreviewTrip\x12\x18.trip.PreviewTripRequest\x1a\x19.trip.PreviewTripResponse\x12?\n" +
+	"\n" +
+	"CreateTrip\x12\x17.trip.CreateTripRequest\x1a\x18.trip.CreateTripResponseB\x18Z\x16shared/proto/trip;tripb\x06proto3"
 
 var (
 	file_proto_trip_proto_rawDescOnce sync.Once
@@ -462,31 +742,41 @@ func file_proto_trip_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_trip_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_trip_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_trip_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_proto_trip_proto_goTypes = []any{
 	(PackageSlug)(0),            // 0: trip.PackageSlug
 	(*PreviewTripRequest)(nil),  // 1: trip.PreviewTripRequest
 	(*PreviewTripResponse)(nil), // 2: trip.PreviewTripResponse
-	(*Coordinate)(nil),          // 3: trip.Coordinate
-	(*Geometry)(nil),            // 4: trip.Geometry
-	(*Route)(nil),               // 5: trip.Route
-	(*RideFare)(nil),            // 6: trip.RideFare
+	(*CreateTripRequest)(nil),   // 3: trip.CreateTripRequest
+	(*CreateTripResponse)(nil),  // 4: trip.CreateTripResponse
+	(*Coordinate)(nil),          // 5: trip.Coordinate
+	(*Geometry)(nil),            // 6: trip.Geometry
+	(*Route)(nil),               // 7: trip.Route
+	(*RideFare)(nil),            // 8: trip.RideFare
+	(*Trip)(nil),                // 9: trip.Trip
+	(*TripDriver)(nil),          // 10: trip.TripDriver
 }
 var file_proto_trip_proto_depIdxs = []int32{
-	3, // 0: trip.PreviewTripRequest.startLocation:type_name -> trip.Coordinate
-	3, // 1: trip.PreviewTripRequest.endLocation:type_name -> trip.Coordinate
-	5, // 2: trip.PreviewTripResponse.route:type_name -> trip.Route
-	6, // 3: trip.PreviewTripResponse.rideFares:type_name -> trip.RideFare
-	3, // 4: trip.Geometry.coordinates:type_name -> trip.Coordinate
-	4, // 5: trip.Route.geometry:type_name -> trip.Geometry
-	0, // 6: trip.RideFare.packageSlug:type_name -> trip.PackageSlug
-	1, // 7: trip.TripService.PreviewTrip:input_type -> trip.PreviewTripRequest
-	2, // 8: trip.TripService.PreviewTrip:output_type -> trip.PreviewTripResponse
-	8, // [8:9] is the sub-list for method output_type
-	7, // [7:8] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	5,  // 0: trip.PreviewTripRequest.startLocation:type_name -> trip.Coordinate
+	5,  // 1: trip.PreviewTripRequest.endLocation:type_name -> trip.Coordinate
+	7,  // 2: trip.PreviewTripResponse.route:type_name -> trip.Route
+	8,  // 3: trip.PreviewTripResponse.rideFares:type_name -> trip.RideFare
+	9,  // 4: trip.CreateTripResponse.trip:type_name -> trip.Trip
+	5,  // 5: trip.Geometry.coordinates:type_name -> trip.Coordinate
+	6,  // 6: trip.Route.geometry:type_name -> trip.Geometry
+	0,  // 7: trip.RideFare.packageSlug:type_name -> trip.PackageSlug
+	8,  // 8: trip.Trip.selectedFare:type_name -> trip.RideFare
+	7,  // 9: trip.Trip.route:type_name -> trip.Route
+	10, // 10: trip.Trip.driver:type_name -> trip.TripDriver
+	1,  // 11: trip.TripService.PreviewTrip:input_type -> trip.PreviewTripRequest
+	3,  // 12: trip.TripService.CreateTrip:input_type -> trip.CreateTripRequest
+	2,  // 13: trip.TripService.PreviewTrip:output_type -> trip.PreviewTripResponse
+	4,  // 14: trip.TripService.CreateTrip:output_type -> trip.CreateTripResponse
+	13, // [13:15] is the sub-list for method output_type
+	11, // [11:13] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_proto_trip_proto_init() }
@@ -500,7 +790,7 @@ func file_proto_trip_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_trip_proto_rawDesc), len(file_proto_trip_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

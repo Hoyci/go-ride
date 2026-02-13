@@ -9,43 +9,44 @@ import (
 )
 
 type Handler struct {
-	Router *http.ServeMux
+	Router     *http.ServeMux
+	jwtService *jwt.JWTService
+	rdb        *redis.Client
 }
 
-func NewHTTPHandler() *Handler {
+func NewHTTPHandler(jwtService *jwt.JWTService, rdb *redis.Client) *Handler {
 	router := http.NewServeMux()
 
 	return &Handler{
-		Router: router,
+		Router:     router,
+		jwtService: jwtService,
+		rdb:        rdb,
 	}
 }
 
 func (h *Handler) RegisterRoutes(
 	userController *controllers.UserController,
 	tripController *controllers.TripController,
-	jwtService *jwt.JWTService,
-	rdb *redis.Client,
 ) {
-	h.registerUserRoutes(userController, jwtService, rdb)
-	h.registerTripRoutes(tripController, jwtService, rdb)
+	h.registerUserRoutes(userController)
+	h.registerTripRoutes(tripController)
 }
 
-func (h *Handler) registerUserRoutes(userController *controllers.UserController, jwtSvc *jwt.JWTService, rdb *redis.Client) {
+func (h *Handler) registerUserRoutes(userController *controllers.UserController) {
 	h.Router.HandleFunc("POST /api/v1/user", userController.HandleCreateUser)
 	h.Router.HandleFunc("POST /api/v1/login", userController.HandleLogin)
 	h.Router.HandleFunc("POST /api/v1/refresh", userController.HandleRefreshToken)
 
-	logoutHandler := http.HandlerFunc(userController.HandleLogout)
-	protectedRoute := AuthMiddleware(jwtSvc, rdb)(logoutHandler)
-
-	h.Router.Handle("POST /api/v1/logout", protectedRoute)
+	h.Router.Handle("POST /api/v1/logout", h.withAuth(userController.HandleLogout))
 }
 
-func (h *Handler) registerTripRoutes(tripController *controllers.TripController, jwtSvc *jwt.JWTService, rdb *redis.Client) {
-	tripHandler := http.HandlerFunc(tripController.HandleTripPreview)
-	protectedRoute := AuthMiddleware(jwtSvc, rdb)(tripHandler)
+func (h *Handler) registerTripRoutes(tripController *controllers.TripController) {
+	h.Router.Handle("POST /api/v1/trip-preview", h.withAuth(tripController.HandleTripPreview))
+	h.Router.Handle("POST /api/v1/trip", h.withAuth(tripController.HandleCreateTrip))
+}
 
-	h.Router.Handle("POST /api/v1/trip-preview", protectedRoute)
+func (h *Handler) withAuth(next http.HandlerFunc) http.Handler {
+	return AuthMiddleware(h.jwtService, h.rdb)(next)
 }
 
 func (h *Handler) GetHandler() http.Handler {

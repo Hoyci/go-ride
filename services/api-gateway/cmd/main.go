@@ -52,8 +52,8 @@ func main() {
 	tripController := controllers.NewTripController(v, tripClient)
 	userController := controllers.NewUserController(v, userClient)
 
-	handler := httpHandler.NewHTTPHandler()
-	handler.RegisterRoutes(userController, tripController, jwtSvc, rdb)
+	handler := httpHandler.NewHTTPHandler(jwtSvc, rdb)
+	handler.RegisterRoutes(userController, tripController)
 	finalHandler := handler.GetHandler()
 
 	server := &http.Server{
