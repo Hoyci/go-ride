@@ -37,8 +37,8 @@ const handleSubmit = (e: React.FormEvent) => {
 };
 
   return (
-    <div className="fixed inset-0 bg-card flex flex-col justify-center items-center z-50 p-6">
-      <div className="w-full max-w-md">
+    <div className="fixed inset-0 bg-primary flex flex-col justify-center items-center z-50 p-6">
+      <div className="w-full max-w-md bg-card text-card-foreground p-6 rounded-2xl shadow-xl">
         <button
           onClick={() => navigate("/")}
           className="mb-6 text-muted-foreground hover:text-foreground cursor-pointer flex items-center gap-2"

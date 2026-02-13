@@ -25,7 +25,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const login = (u: User) => {
-    console.log(u)
     setUser(u);
     localStorage.setItem("user_data", JSON.stringify(u));
   };
