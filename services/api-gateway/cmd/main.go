@@ -16,6 +16,7 @@ import (
 	grpc_clients "go-ride/services/api-gateway/internal/clients/grpc"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/redis/go-redis/v9"
 )
 
 var (
@@ -24,12 +25,14 @@ var (
 	tripSvcAddr = env.GetString("TRIP_SERVICE_ADDR", "trip-service:9093")
 	userSvcAddr = env.GetString("USER_SERVICE_ADDR", "user-service:9091")
 	JWTSecret   = env.GetString("JWT_SECRET", "um-secret-muito-complexo")
+	RedisAddr   = env.GetString("REDIS_ADDR", "localhost:6379")
 )
 
 func main() {
 	log.Println("Starting API Gateway")
-
-	v := validator.New()
+	rdb := redis.NewClient(&redis.Options{
+		Addr: RedisAddr,
+	})
 
 	tripClient, conn, err := grpc_clients.NewTripServiceClient(tripSvcAddr)
 	if err != nil {
@@ -45,11 +48,12 @@ func main() {
 
 	jwtSvc := jwt.NewJWTService(JWTSecret)
 
+	v := validator.New()
 	tripController := controllers.NewTripController(v, tripClient)
 	userController := controllers.NewUserController(v, userClient)
 
 	handler := httpHandler.NewHTTPHandler()
-	handler.RegisterRoutes(userController, tripController, jwtSvc)
+	handler.RegisterRoutes(userController, tripController, jwtSvc, rdb)
 	finalHandler := handler.GetHandler()
 
 	server := &http.Server{

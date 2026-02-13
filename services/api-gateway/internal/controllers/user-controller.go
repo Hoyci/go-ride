@@ -103,3 +103,50 @@ func (s *UserController) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		Data: grpcRes,
 	})
 }
+
+func (s *UserController) HandleRefreshToken(w http.ResponseWriter, r *http.Request) {
+	var req dto.RefreshTokenRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		responses.WriteJSON(w, http.StatusBadRequest, contracts.APIResponse{
+			Error: &contracts.APIError{Message: "invalid payload"},
+		})
+		return
+	}
+
+	grpcRes, err := s.userService.RefreshToken(r.Context(), &pu.RefreshTokenRequest{
+		Token: req.RefreshToken,
+	})
+
+	if err != nil {
+		responses.WriteJSON(w, http.StatusUnauthorized, contracts.APIResponse{
+			Error: &contracts.APIError{Message: "session expired"},
+		})
+		return
+	}
+
+	responses.WriteJSON(w, http.StatusOK, contracts.APIResponse{
+		Data: grpcRes,
+	})
+}
+
+func (s *UserController) HandleLogout(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		responses.WriteJSON(w, http.StatusUnauthorized, contracts.APIResponse{
+			Error: &contracts.APIError{Message: "unauthorized"},
+		})
+		return
+	}
+
+	_, err := s.userService.Logout(r.Context(), &pu.LogoutRequest{UserID: userID})
+	if err != nil {
+		responses.WriteJSON(w, http.StatusInternalServerError, contracts.APIResponse{
+			Error: &contracts.APIError{Message: "failed to logout"},
+		})
+		return
+	}
+
+	responses.WriteJSON(w, http.StatusOK, contracts.APIResponse{
+		Data: "logged out successfully",
+	})
+}

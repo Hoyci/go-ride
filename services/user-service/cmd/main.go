@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/redis/go-redis/v9"
 	grpcserver "google.golang.org/grpc"
 )
 
@@ -20,9 +21,13 @@ var (
 	GrpcAddr    = env.GetString("GRPC_ADDR", ":9091")
 	environment = env.GetString("ENVIRONMENT", "development")
 	JWTSecret   = env.GetString("JWT_SECRET", "um-secret-muito-complexo")
+	RedisAddr   = env.GetString("REDIS_ADDR", "localhost:6379")
 )
 
 func main() {
+	rdb := redis.NewClient(&redis.Options{
+		Addr: RedisAddr,
+	})
 	inmemRepo := repository.NewInmemRepository()
 	userSvc := service.NewUserSerivce(inmemRepo)
 	jwtSvc := jwt.NewJWTService(JWTSecret)
@@ -43,7 +48,7 @@ func main() {
 	}
 
 	grpcServer := grpcserver.NewServer()
-	grpc.NewGRPCHandler(grpcServer, userSvc, jwtSvc)
+	grpc.NewGRPCHandler(grpcServer, userSvc, jwtSvc, rdb)
 
 	go func() {
 		log.Printf("starting GRPC user service on port %s", lis.Addr().String())

@@ -5,13 +5,16 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type tokenType string
 
 const (
-	ACCESS  tokenType = "ACCESS"
-	REFRESH tokenType = "REFRESH"
+	ACCESS             tokenType = "ACCESS"
+	REFRESH            tokenType = "REFRESH"
+	ACCESS_EXPIRATION            = 15 * time.Minute
+	REFRESH_EXPIRATION           = 24 * time.Hour
 )
 
 type JWTService struct {
@@ -22,27 +25,35 @@ func NewJWTService(secret string) *JWTService {
 	return &JWTService{secret: []byte(secret)}
 }
 
-func (j *JWTService) GenerateToken(userID string, tokenType tokenType) (string, error) {
+func (j *JWTService) GenerateToken(userID string, tokenType tokenType) (string, string, error) {
 	var exp int64
 
 	switch tokenType {
 	case ACCESS:
-		exp = time.Now().Add(15 * time.Minute).Unix()
+		exp = time.Now().Add(ACCESS_EXPIRATION).Unix()
 	case REFRESH:
-		exp = time.Now().Add(24 * time.Hour).Unix()
+		exp = time.Now().Add(REFRESH_EXPIRATION).Unix()
 	default:
-		return "", fmt.Errorf("invalid token type")
+		return "", "", fmt.Errorf("invalid token type")
 	}
+
+	jti := uuid.New().String()
 
 	claims := jwt.MapClaims{
 		"sub":  userID,
+		"jti":  jti,
 		"type": string(tokenType),
 		"exp":  exp,
 		"iat":  time.Now().Unix(),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(j.secret)
+	tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := tokenObj.SignedString(j.secret)
+	if err != nil {
+		return "", "", err
+	}
+
+	return signedToken, jti, nil
 }
 
 func (j *JWTService) Validate(tokenStr string) (*jwt.Token, error) {
