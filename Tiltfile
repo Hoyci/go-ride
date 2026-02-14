@@ -3,7 +3,7 @@ load('ext://restart_process', 'docker_build_with_restart')
 
 ### K8s Config ###
 k8s_yaml('./infra/development/k8s/app-config.yaml')
-# k8s_yaml('./infra/development/k8s/secrets.yaml')
+k8s_yaml('./infra/development/k8s/secrets.yaml')
 ### End of K8s Config ###
 
 ### API Gateway ###
@@ -31,7 +31,7 @@ docker_build_with_restart(
 )
 
 k8s_yaml('./infra/development/k8s/api-gateway-deployment.yaml')
-k8s_resource('api-gateway', port_forwards=8081, resource_deps=['api-gateway-compile'], labels="services")
+k8s_resource('api-gateway', port_forwards=8081, resource_deps=['api-gateway-compile' ,'rabbitmq'], labels="services")
 ### End of API Gateway ###
 
 ### User Service ###
@@ -59,7 +59,7 @@ docker_build_with_restart(
 )
 
 k8s_yaml('./infra/development/k8s/user-service-deployment.yaml')
-k8s_resource('user-service', resource_deps=['user-service-compile'], labels="services")
+k8s_resource('user-service', resource_deps=['user-service-compile', 'rabbitmq'], labels="services")
 ### End of user Service ###
 
 ### Trip Service ###
@@ -87,7 +87,7 @@ docker_build_with_restart(
 )
 
 k8s_yaml('./infra/development/k8s/trip-service-deployment.yaml')
-k8s_resource('trip-service', resource_deps=['trip-service-compile'], labels="services")
+k8s_resource('trip-service', resource_deps=['trip-service-compile', 'rabbitmq'], labels="services")
 ### End of Trip Service ###
 
 ### Web Service ###
@@ -114,10 +114,15 @@ docker_build_with_restart(
 )
 
 k8s_yaml('./infra/development/k8s/web-deployment.yaml')
-k8s_resource('web-frontend', port_forwards='8080:80', resource_deps=['web-compile'], labels="services")
+k8s_resource('web-frontend', port_forwards='8080:80', resource_deps=['web-compile', 'api-gateway'], labels="services")
 ### End of Web Service ###
 
 ### Redis Service ###
 k8s_yaml('./infra/development/k8s/redis-deployment.yaml')
-k8s_resource('redis', labels="infra")
+k8s_resource('redis', port_forwards=['6379'], labels="infra")
 ### End of Redis Service ###
+
+### RabbitMQ ###
+k8s_yaml('./infra/development/k8s/rabbitmq-deployment.yaml')
+k8s_resource('rabbitmq', port_forwards=['5672', '15672'], labels='infra')
+### End RabbitMQ ###

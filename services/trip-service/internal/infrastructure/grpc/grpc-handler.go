@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"go-ride/services/trip-service/internal/domain"
+	"go-ride/services/trip-service/internal/events"
 	pb "go-ride/shared/proto/trip"
 	"go-ride/shared/types"
 	"log"
@@ -16,14 +17,14 @@ type gRPCHandler struct {
 	pb.UnimplementedTripServiceServer
 	tripService domain.TripService
 	OSRMService domain.OSRMService
-	// publisher *events.TripEventPublisher
+	publisher   *events.TripEventPublisher
 }
 
-func NewGRPCHandler(server *grpc.Server, tripService domain.TripService, OSRMService domain.OSRMService) *gRPCHandler {
+func NewGRPCHandler(server *grpc.Server, tripService domain.TripService, OSRMService domain.OSRMService, publisher *events.TripEventPublisher) *gRPCHandler {
 	handler := &gRPCHandler{
 		tripService: tripService,
 		OSRMService: OSRMService,
-		// publisher: publisher,
+		publisher:   publisher,
 	}
 
 	pb.RegisterTripServiceServer(server, handler)
@@ -77,9 +78,9 @@ func (h *gRPCHandler) CreateTrip(ctx context.Context, req *pb.CreateTripRequest)
 		return nil, status.Errorf(codes.Internal, "failed to create trip: %v", err)
 	}
 
-	// if err := h.publisher.PublishTripCreated(ctx, trip); err != nil {
-	// 	return nil, status.Errorf(codes.Internal, "failed to publish the trip created event message: %v", err)
-	// }
+	if err := h.publisher.PublishTripCreated(ctx, trip); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to publish the trip created event message: %v", err)
+	}
 
 	return &pb.CreateTripResponse{
 		TripID: trip.ID.String(),

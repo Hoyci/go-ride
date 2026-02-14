@@ -27,16 +27,16 @@ type TripModel struct {
 	Driver      *pb.TripDriver // Realmente eu devo usar o proto aqui para tipar o driver?
 }
 
-// func (t *TripModel) ToProto() *pb.Trip {
-// 	return &pb.Trip{
-// 		Id:           t.ID.Hex(),
-// 		UserId:       t.UserID,
-// 		SelectedFare: t.RideFare.ToProto(),
-// 		Status:       t.Status,
-// 		Driver:       t.Driver,
-// 		Route:        t.RideFare.Route.ToProto(),
-// 	}
-// }
+func (t *TripModel) ToProto() *pb.Trip {
+	return &pb.Trip{
+		Id:           t.ID.String(),
+		UserId:       t.PassengerID.String(),
+		SelectedFare: t.RideFare.ToProto(),
+		Status:       string(t.Status),
+		Driver:       t.Driver,
+		Route:        t.RideFare.Route.ToProto(),
+	}
+}
 
 type TripRepository interface {
 	CreateTrip(ctx context.Context, trip *TripModel) (*TripModel, error)
