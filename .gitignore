@@ -59,6 +59,3 @@ build/
 
 # Cursor
 .cursorrules
-
-# Secrets
-secrets.yaml

@@ -119,6 +119,11 @@ func (s *tripService) CreateTrip(ctx context.Context, fare *domain.RideFareModel
 		return nil, fmt.Errorf("failed to parse userID as uuid")
 	}
 
+	// TODO: Checar se a fare em questão já não expirou
+	// Se tiver expirada, preciso estimar o novo preço e informar o usuário e ver se ele aprova.
+	// Se ele aceitar, crio a viagem e emito o evento para buscar motorista
+	// Se ele recusar, então devo somente enviar ele para a home
+
 	trip := &domain.TripModel{
 		ID:          uuid.New(),
 		PassengerID: passengerID,
@@ -129,3 +134,18 @@ func (s *tripService) CreateTrip(ctx context.Context, fare *domain.RideFareModel
 
 	return s.repo.CreateTrip(ctx, trip)
 }
+
+// TODO: Adicionar um endpoint que cancela uma viagem.
+// Basicamente será pegar o ID do tripModel e atualizar o status para CANCELED
+// PS: Não deve ser possível cancelar se já estiver em progresso
+// PS: Nao deve ser possível cancelar se já estiver completa
+// PS: Se for cancelada pelo passageiro e estiver com o status ACCEPTED, então devo avisar o motorista para que ele possa buscar novas viagens
+// PS: Se for cancelada pelo motorista e estiver com o status ACCEPTED, então devo avisar o passageiro para que ele possa buscar novas viagens
+
+// TODO: Adicionar um endpoint para encerrar uma viagem
+// Basicamente será pegar o ID do tripModel e atualizar o status para COMPLETED
+// PS: Só deve ser possível encerrar se já estiver em progresso
+// PS: Nao deve ser possível encerrar se já estiver completa
+// PS: Não deve ser possível encerrar se a corrida estiver com o status de ACCEPTED
+// PS: Somente o motorista pode encerrar uma viagem
+// PS: O usuário precisa ser notificado que a viagem dele foi encerrada
