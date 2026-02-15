@@ -4,8 +4,10 @@ import (
 	"context"
 	"go-ride/services/api-gateway/internal/controllers"
 	httpHandler "go-ride/services/api-gateway/internal/handlers/http"
+	"go-ride/services/api-gateway/internal/handlers/ws"
 	"go-ride/shared/env"
 	"go-ride/shared/jwt"
+	"go-ride/shared/messaging"
 	"log"
 	"net/http"
 	"os"
@@ -20,19 +22,30 @@ import (
 )
 
 var (
-	httpAddr    = env.GetString("HTTP_ADDR", ":8081")
-	environment = env.GetString("ENVIRONMENT", "development")
-	tripSvcAddr = env.GetString("TRIP_SERVICE_ADDR", "trip-service:9093")
-	userSvcAddr = env.GetString("USER_SERVICE_ADDR", "user-service:9091")
-	JWTSecret   = env.GetString("JWT_SECRET", "um-secret-muito-complexo")
-	RedisAddr   = env.GetString("REDIS_ADDR", "localhost:6379")
+	httpAddr      = env.GetString("HTTP_ADDR", ":8081")
+	environment   = env.GetString("ENVIRONMENT", "development")
+	userSvcAddr   = env.GetString("USER_SERVICE_ADDR", "user-service:9091")
+	driverSvcAddr = env.GetString("DRIVER_SERVICE_ADDR", "driver-service:9092")
+	tripSvcAddr   = env.GetString("TRIP_SERVICE_ADDR", "trip-service:9093")
+	JWTSecret     = env.GetString("JWT_SECRET", "um-secret-muito-complexo")
+	RedisAddr     = env.GetString("REDIS_ADDR", "localhost:6379")
 )
 
 func main() {
 	log.Println("Starting API Gateway")
+
+	log.Printf("Connecting to Redis at %s", RedisAddr)
 	rdb := redis.NewClient(&redis.Options{
 		Addr: RedisAddr,
 	})
+
+	pingCtx, pingCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer pingCancel()
+	if err := rdb.Ping(pingCtx).Err(); err != nil {
+		log.Fatalf("failed to connect to redis: %v", err)
+	}
+	defer rdb.Close()
+	log.Println("connected to Redis successfully")
 
 	tripClient, conn, err := grpc_clients.NewTripServiceClient(tripSvcAddr)
 	if err != nil {
@@ -46,14 +59,25 @@ func main() {
 	}
 	defer conn.Close()
 
-	jwtSvc := jwt.NewJWTService(JWTSecret)
+	driverClient, conn, err := grpc_clients.NewDriverServiceClient(driverSvcAddr)
+	if err != nil {
+		log.Fatalf("could not connect to user service: %v", err)
+	}
+	defer conn.Close()
 
+	connManager := messaging.NewConnectionManager()
+
+	jwtSvc := jwt.NewJWTService(JWTSecret)
 	v := validator.New()
+
 	tripController := controllers.NewTripController(v, tripClient)
 	userController := controllers.NewUserController(v, userClient)
+	driverController := controllers.NewDriverController(v, driverClient)
+
+	driverWSHandler := ws.NewDriverWSHandler(connManager, driverClient)
 
 	handler := httpHandler.NewHTTPHandler(jwtSvc, rdb)
-	handler.RegisterRoutes(userController, tripController)
+	handler.RegisterRoutes(userController, tripController, driverController, driverWSHandler)
 	finalHandler := handler.GetHandler()
 
 	server := &http.Server{

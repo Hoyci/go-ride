@@ -1,14 +1,21 @@
 package types
 
 import (
+	pd "go-ride/shared/proto/driver"
 	pu "go-ride/shared/proto/user"
 )
 
 type UserType string
+type DriverStatus string
 
 const (
 	DRIVER    UserType = "DRIVER"
 	PASSENGER UserType = "PASSENGER"
+)
+
+const (
+	ONLINE  DriverStatus = "ONLINE"
+	OFFLINE DriverStatus = "OFFLINE"
 )
 
 func MapUserTypeDomainToProto(t UserType) pu.UserType {
@@ -30,6 +37,28 @@ func MapProtoToUserTypeDomain(t pu.UserType) UserType {
 		return PASSENGER
 	default:
 		return PASSENGER
+	}
+}
+
+func MapDriverStatusDomainToProto(s DriverStatus) pd.DriverStatusType {
+	switch s {
+	case ONLINE:
+		return pd.DriverStatusType_ONLINE
+	case OFFLINE:
+		return pd.DriverStatusType_OFFLINE
+	default:
+		return pd.DriverStatusType_STATUS_TYPE_UNSPECIFIED
+	}
+}
+
+func MapProtoDriverStatusToDomain(s pd.DriverStatusType) DriverStatus {
+	switch s {
+	case pd.DriverStatusType_ONLINE:
+		return ONLINE
+	case pd.DriverStatusType_OFFLINE:
+		return OFFLINE
+	default:
+		return OFFLINE
 	}
 }
 

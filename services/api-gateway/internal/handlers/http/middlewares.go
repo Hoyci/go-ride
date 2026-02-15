@@ -69,13 +69,20 @@ func CORS(next http.Handler) http.Handler {
 func AuthMiddleware(jwtSvc *jwt.JWTService, rdb *redis.Client) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var tokenStr string
+
 			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
+			if authHeader != "" {
+				tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
+			} else {
+				tokenStr = r.URL.Query().Get("token")
+			}
+
+			if tokenStr == "" {
 				http.Error(w, "token not found", http.StatusUnauthorized)
 				return
 			}
 
-			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 			token, err := jwtSvc.Validate(tokenStr)
 
 			if err != nil || !token.Valid {

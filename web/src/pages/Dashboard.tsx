@@ -144,7 +144,7 @@ const Dashboard = () => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {user.type === "PASSENGER" ? <PassengerUI map={map} userCoords={coords} /> : <DriverUI />}
+      {user.type === "PASSENGER" ? <PassengerUI map={map} userCoords={coords} /> : <DriverUI userCoords={coords} /> }
     </div>
   );
 };
