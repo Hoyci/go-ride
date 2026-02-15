@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package driver;
+
+option go_package = "shared/proto/driver;driver";
+
+service DriverService {
+    rpc UpdateStatus(UpdateStatusRequest) returns (UpdateStatusResponse);
+}
+
+enum DriverStatusType {
+    STATUS_TYPE_UNSPECIFIED = 0;
+    ONLINE = 1;
+    OFFLINE = 2;
+}
+
+message UpdateStatusRequest {
+    string DriverID = 1;
+    DriverStatusType Status = 2;
+    Coordinate ActualLocation = 3;
+}
+
+message UpdateStatusResponse {
+    bool success = 1;
+}
+
+// Preciso aprender a fazer import entre arquivos .proto para tirar esse Coordinate daqui
+message Coordinate {
+    double latitude = 1;
+    double longitude = 2;
+};

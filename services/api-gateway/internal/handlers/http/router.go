@@ -2,6 +2,7 @@ package http
 
 import (
 	"go-ride/services/api-gateway/internal/controllers"
+	"go-ride/services/api-gateway/internal/handlers/ws"
 	"go-ride/shared/jwt"
 	"net/http"
 
@@ -27,9 +28,13 @@ func NewHTTPHandler(jwtService *jwt.JWTService, rdb *redis.Client) *Handler {
 func (h *Handler) RegisterRoutes(
 	userController *controllers.UserController,
 	tripController *controllers.TripController,
+	driverController *controllers.DriverController,
+	driverWSHandler *ws.DriverWSHandler,
 ) {
 	h.registerUserRoutes(userController)
 	h.registerTripRoutes(tripController)
+	h.registerDriverRoutes(driverController, driverWSHandler)
+
 }
 
 func (h *Handler) registerUserRoutes(userController *controllers.UserController) {
@@ -43,6 +48,10 @@ func (h *Handler) registerUserRoutes(userController *controllers.UserController)
 func (h *Handler) registerTripRoutes(tripController *controllers.TripController) {
 	h.Router.Handle("POST /api/v1/trip-preview", h.withAuth(tripController.HandleTripPreview))
 	h.Router.Handle("POST /api/v1/trip", h.withAuth(tripController.HandleCreateTrip))
+}
+
+func (h *Handler) registerDriverRoutes(_ *controllers.DriverController, driverWSHandler *ws.DriverWSHandler) {
+	h.Router.Handle("GET /api/v1/driver/stream", h.withAuth(driverWSHandler.HandleConnection))
 }
 
 func (h *Handler) withAuth(next http.HandlerFunc) http.Handler {

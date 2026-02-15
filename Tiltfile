@@ -90,6 +90,34 @@ k8s_yaml('./infra/development/k8s/trip-service-deployment.yaml')
 k8s_resource('trip-service', resource_deps=['trip-service-compile', 'rabbitmq'], labels="services")
 ### End of Trip Service ###
 
+### Driver Service ###
+driver_compile_cmd  = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/driver-service ./services/driver-service/cmd'
+
+local_resource(
+  'driver-service-compile',
+  driver_compile_cmd,
+  deps=['./services/driver-service', './shared'], labels="compiles")
+
+
+docker_build_with_restart(
+  'go-ride/driver-service',
+  '.',
+  entrypoint=['/app/build/driver-service'],
+  dockerfile='./infra/development/docker/driver-service.Dockerfile',
+  only=[
+    './build/driver-service',
+    './shared',
+  ],
+  live_update=[
+    sync('./build', '/app/build'),
+    sync('./shared', '/app/shared'),
+  ],
+)
+
+k8s_yaml('./infra/development/k8s/driver-service-deployment.yaml')
+k8s_resource('driver-service', resource_deps=['driver-service-compile', 'rabbitmq'], labels="services")
+### End of Driver Service ###
+
 ### Web Service ###
 web_compile_cmd = 'cd web && npm install --legacy-peer-deps && npm run build'
 

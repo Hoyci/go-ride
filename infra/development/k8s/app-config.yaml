@@ -9,3 +9,4 @@ data:
   TRIP_SERVICE_ADDR: "trip-service:9093"
   VITE_API_URL: "http://localhost:8081/api/v1"
   REDIS_ADDR: "redis:6379"
+  AMQP_ADDR: "amqp://guest:guest@rabbitmq:5672"
